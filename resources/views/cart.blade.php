@@ -409,7 +409,16 @@
                                             <strong>Selected Combo Items:</strong>
                                             <ul style="margin-left: 16px; margin-top: 4px;">
                                                 @foreach($item['combo_items'] as $ci)
-                                                    <li>Item {{ $ci['slot'] }}: <strong>{{ $ci['name'] }}</strong></li>
+                                                    @php
+                                                        $label = $ci['name'] ?? $ci['product_name'] ?? 'Item';
+                                                        $slot = $ci['slot'] ?? $loop->iteration;
+                                                    @endphp
+                                                    <li>
+                                                        {{ is_numeric($slot) ? 'Item ' . $slot : $slot }}:
+                                                        <strong>{{ $label }}</strong>
+                                                        @if(!empty($ci['size']))<span style="color:#64748b;"> ({{ $ci['size'] }})</span>@endif
+                                                        @if(!empty($ci['crust']))<span style="color:#64748b;"> • {{ $ci['crust'] }}</span>@endif
+                                                    </li>
                                                 @endforeach
                                             </ul>
                                         </div>
