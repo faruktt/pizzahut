@@ -1,0 +1,128 @@
+@extends('layouts.admin')
+
+@section('title', 'Manage Orders | Italian Pizza Admin')
+@section('page-title', 'Orders Management')
+
+@section('admin-content')
+<div class="card-panel">
+    <!-- Header with Filters & Create Button -->
+    <div class="card-panel-header" style="flex-wrap: wrap; gap: 16px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ route('admin.orders.index') }}" class="btn-view-store {{ !request('type') ? 'active' : '' }}" style="{{ !request('type') ? 'background: #0284c7; color: #fff;' : '' }}">
+                All Orders
+            </a>
+            <a href="{{ route('admin.orders.index') }}?type=delivery" class="btn-view-store" style="{{ request('type') == 'delivery' ? 'background: #0284c7; color: #fff;' : '' }}">
+                🛵 Delivery
+            </a>
+            <a href="{{ route('admin.orders.index') }}?type=takeaway" class="btn-view-store" style="{{ request('type') == 'takeaway' ? 'background: #0284c7; color: #fff;' : '' }}">
+                🛍️ Takeaway
+            </a>
+            <a href="{{ route('admin.orders.index') }}?type=dine_in" class="btn-view-store" style="{{ request('type') == 'dine_in' ? 'background: #0284c7; color: #fff;' : '' }}">
+                🍽️ Dine-in (Tables)
+            </a>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <form action="{{ route('admin.orders.index') }}" method="GET" style="display: flex; gap: 6px;">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Order #, name, phone..." class="form-control" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid var(--border-light); border-radius: 6px;">
+                <button type="submit" class="btn-view-store">Search</button>
+            </form>
+
+            <a href="{{ route('admin.orders.create') }}" class="btn-quick-pos">
+                ➕ Create Walk-in Order
+            </a>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div style="overflow-x: auto;">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Date / Time</th>
+                    <th>Type</th>
+                    <th>Customer / Table</th>
+                    <th>Items</th>
+                    <th>Total (৳)</th>
+                    <th>Payment</th>
+                    <th>Order Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($orders as $ord)
+                    <tr>
+                        <td>
+                            <strong>#{{ $ord->order_number }}</strong>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.8rem; color: #475569;">{{ $ord->created_at->format('d M Y, h:i A') }}</div>
+                        </td>
+                        <td>
+                            <span style="font-weight: 700; font-size: 0.78rem; text-transform: uppercase;">
+                                @if($ord->order_type === 'delivery')
+                                    🛵 Delivery
+                                @elseif($ord->order_type === 'takeaway')
+                                    🛍️ Takeaway
+                                @else
+                                    🍽️ Dine-in
+                                @endif
+                            </span>
+                        </td>
+                        <td>
+                            @if($ord->order_type === 'dine_in' && $ord->table)
+                                <strong>{{ $ord->table->table_number }}</strong>
+                            @else
+                                <strong>{{ $ord->customer_name ?: 'Guest' }}</strong>
+                                <div style="font-size: 0.75rem; color: #64748b;">{{ $ord->customer_phone }}</div>
+                            @endif
+                        </td>
+                        <td>
+                            <div style="font-size: 0.82rem;">{{ $ord->items->count() }} item(s)</div>
+                        </td>
+                        <td>
+                            <strong style="color: var(--admin-primary); font-size: 0.95rem;">
+                                ৳ {{ number_format($ord->total_amount) }}
+                            </strong>
+                        </td>
+                        <td>
+                            <span class="badge {{ $ord->payment_status === 'paid' ? 'badge-completed' : 'badge-pending' }}">
+                                {{ ucfirst($ord->payment_status) }}
+                            </span>
+                        </td>
+                        <td>
+                            <form action="{{ route('admin.orders.updateStatus', $ord->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <select name="order_status" onchange="this.form.submit()" style="padding: 4px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; border: 1px solid #cbd5e1; background: #fff; cursor: pointer;">
+                                    <option value="pending" {{ $ord->order_status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="preparing" {{ $ord->order_status === 'preparing' ? 'selected' : '' }}>Preparing</option>
+                                    <option value="ready" {{ $ord->order_status === 'ready' ? 'selected' : '' }}>Ready</option>
+                                    <option value="served" {{ $ord->order_status === 'served' ? 'selected' : '' }}>Served</option>
+                                    <option value="completed" {{ $ord->order_status === 'completed' ? 'selected' : '' }}>Completed</option>
+                                    <option value="cancelled" {{ $ord->order_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <a href="{{ route('admin.orders.show', $ord->id) }}" class="btn-view-store" style="padding: 4px 10px; font-size: 0.75rem;">
+                                View Details »
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px; color: #94a3b8;">
+                            No orders found.
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <div style="padding: 16px 24px;">
+        {{ $orders->links() }}
+    </div>
+</div>
+@endsection
