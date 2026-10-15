@@ -34,6 +34,14 @@ class Setting extends Model
     }
 
     /**
+     * Get configured delivery / shipping charge in Taka.
+     */
+    public static function getDeliveryCharge(): float
+    {
+        return (float) static::getValue('delivery_charge', 70);
+    }
+
+    /**
      * Calculate discount amount in Taka for given reward points based on admin setting.
      */
     public static function getPointDiscount(int $points): float

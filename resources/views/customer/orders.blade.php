@@ -262,9 +262,18 @@
                     </div>
                     <div class="order-total">৳{{ number_format($order->total_amount) }}</div>
                     <div class="d-flex align-items-center gap-8">
-                        <span class="order-status status-{{ strtolower($order->order_status) }}">
-                            {{ ucfirst($order->order_status) }}
-                        </span>
+                        @php
+                            $st = $order->status_object;
+                        @endphp
+                        @if($st)
+                            <span class="order-status" style="background: {{ $st->bg_color }}; color: {{ $st->color }}; border: 1px solid {{ $st->color }}33; font-weight:700;">
+                                {{ $st->name }}
+                            </span>
+                        @else
+                            <span class="order-status status-{{ strtolower($order->order_status) }}">
+                                {{ ucfirst(str_replace('_', ' ', $order->order_status)) }}
+                            </span>
+                        @endif
                         <a href="{{ route('customer.orders.show', $order->id) }}" class="btn-sm btn-outline">
                             <i class="fa-solid fa-eye"></i> Details
                         </a>

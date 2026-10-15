@@ -19,36 +19,46 @@
 
         <div class="card-panel-body">
             <!-- Top Status Bar & Quick Update Form -->
+            @php
+                $stObj = $orderStatuses->firstWhere('slug', $order->order_status)
+                    ?? \App\Models\OrderStatus::findBySlugOrName($order->order_status);
+                $stBg = $stObj->bg_color ?? '#f1f5f9';
+                $stCol = $stObj->color ?? '#334155';
+                $stName = $stObj->name ?? ucfirst(str_replace('_', ' ', $order->order_status));
+            @endphp
             <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: 8px; padding: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                <div>
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <span style="font-size: 0.8rem; color: #64748b; font-weight: 700; text-transform: uppercase;">Current Status:</span>
-                    <span class="badge badge-{{ $order->order_status }}" style="margin-left: 6px;">
-                        {{ ucfirst($order->order_status) }}
+                    <span style="display:inline-flex; align-items:center; gap:6px; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 800; background: {{ $stBg }}; color: {{ $stCol }}; border: 1.5px solid {{ $stCol }}33;">
+                        <span style="width:7px; height:7px; border-radius:50%; background:{{ $stCol }};"></span>
+                        {{ $stName }}
                     </span>
-                    <span class="badge {{ $order->payment_status === 'paid' ? 'badge-completed' : 'badge-pending' }}" style="margin-left: 6px;">
+                    <span class="badge {{ $order->payment_status === 'paid' ? 'badge-completed' : 'badge-pending' }}" style="font-size:0.8rem; padding:4px 10px;">
                         Pay: {{ ucfirst($order->payment_status) }}
                     </span>
                 </div>
 
-                <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" style="display:flex; gap:8px; align-items:center;">
+                <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                     @csrf
                     <label style="font-size: 0.82rem; font-weight:700;">Update Status:</label>
-                    <select name="order_status" class="form-control" style="padding: 6px 12px; font-size: 0.82rem;">
-                        <option value="pending" {{ $order->order_status === 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="preparing" {{ $order->order_status === 'preparing' ? 'selected' : '' }}>Preparing</option>
-                        <option value="ready" {{ $order->order_status === 'ready' ? 'selected' : '' }}>Ready</option>
-                        <option value="served" {{ $order->order_status === 'served' ? 'selected' : '' }}>Served</option>
-                        <option value="completed" {{ $order->order_status === 'completed' ? 'selected' : '' }}>Completed</option>
-                        <option value="cancelled" {{ $order->order_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                    <select name="order_status" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600; min-width:140px;">
+                        @foreach($orderStatuses as $statusItem)
+                            <option value="{{ $statusItem->slug }}" {{ $order->order_status === $statusItem->slug ? 'selected' : '' }}>
+                                {{ $statusItem->name }}
+                            </option>
+                        @endforeach
+                        @if(!$orderStatuses->contains('slug', $order->order_status) && $order->order_status)
+                            <option value="{{ $order->order_status }}" selected>{{ ucfirst(str_replace('_', ' ', $order->order_status)) }}</option>
+                        @endif
                     </select>
 
-                    <select name="payment_status" class="form-control" style="padding: 6px 12px; font-size: 0.82rem;">
+                    <select name="payment_status" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600;">
                         <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Unpaid</option>
                         <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Paid</option>
                     </select>
 
                     <button type="submit" class="btn-quick-pos" style="padding: 6px 14px; font-size: 0.82rem;">
-                        Update
+                        <i class="fa-solid fa-check"></i> Update
                     </button>
                 </form>
             </div>

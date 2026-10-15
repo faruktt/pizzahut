@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Review Payment & Address | Pizza Hut Bangladesh')
+@section('title', 'Review Payment & Address | Italian Pizza Hut')
 
 @push('styles')
 <style>
@@ -168,7 +168,7 @@
                     <div class="type-select-row">
                         <label class="type-radio-box active" id="labelDelivery">
                             <input type="radio" name="order_type" value="delivery" checked onchange="handleOrderTypeChange('delivery')" style="accent-color: var(--brand-red);">
-                            <span>Home Delivery (+৳70)</span>
+                            <span>Home Delivery ({{ $deliveryCharge > 0 ? '+৳' . number_format($deliveryCharge) : 'Free' }})</span>
                         </label>
                         <label class="type-radio-box" id="labelTakeaway">
                             <input type="radio" name="order_type" value="takeaway" onchange="handleOrderTypeChange('takeaway')" style="accent-color: var(--brand-red);">
@@ -310,6 +310,8 @@
 <script>
     const subtotal = {{ $subtotal }};
     const vatTax = {{ $vatTax }};
+    const totalDiscount = {{ $totalDiscount ?? 0 }};
+    const defaultDeliveryFee = {{ $deliveryCharge }};
 
     function handleOrderTypeChange(type) {
         document.getElementById('labelDelivery').classList.toggle('active', type === 'delivery');
@@ -318,7 +320,7 @@
         const addressInput = document.getElementById('addressInput');
         const addressGroup = document.getElementById('addressGroup');
 
-        let deliveryFee = (type === 'delivery') ? 70 : 0;
+        let deliveryFee = (type === 'delivery') ? defaultDeliveryFee : 0;
         if (type === 'takeaway') {
             addressInput.removeAttribute('required');
             addressGroup.style.opacity = '0.5';
@@ -327,8 +329,8 @@
             addressGroup.style.opacity = '1';
         }
 
-        const newTotal = subtotal + vatTax + deliveryFee;
-        document.getElementById('displayDeliveryFee').innerText = '৳ ' + deliveryFee;
+        const newTotal = Math.max(0, subtotal - totalDiscount) + vatTax + deliveryFee;
+        document.getElementById('displayDeliveryFee').innerText = '৳ ' + Math.round(deliveryFee).toLocaleString();
         document.getElementById('displayTotalPayable').innerText = '৳ ' + Math.round(newTotal).toLocaleString();
     }
 

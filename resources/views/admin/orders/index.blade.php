@@ -22,14 +22,29 @@
             </a>
         </div>
 
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <form action="{{ route('admin.orders.index') }}" method="GET" style="display: flex; gap: 6px;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <form action="{{ route('admin.orders.index') }}" method="GET" style="display: flex; gap: 6px; align-items: center;">
+                @if(request('type'))
+                    <input type="hidden" name="type" value="{{ request('type') }}">
+                @endif
+                <select name="status" onchange="this.form.submit()" class="form-control" style="padding: 6px 10px; font-size: 0.85rem; border: 1px solid var(--border-light); border-radius: 6px; width: auto;">
+                    <option value="">All Statuses</option>
+                    @foreach($orderStatuses as $st)
+                        <option value="{{ $st->slug }}" {{ request('status') == $st->slug ? 'selected' : '' }}>
+                            {{ $st->name }}
+                        </option>
+                    @endforeach
+                </select>
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Order #, name, phone..." class="form-control" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid var(--border-light); border-radius: 6px;">
                 <button type="submit" class="btn-view-store">Search</button>
             </form>
 
+            <a href="{{ route('admin.order-statuses.index') }}" class="btn-view-store" title="Manage dynamic order statuses">
+                <i class="fa-solid fa-tags"></i> Statuses
+            </a>
+
             <a href="{{ route('admin.orders.create') }}" class="btn-quick-pos">
-                <i class="fa-solid fa-plus"></i> Create Walk-in Order
+                <i class="fa-solid fa-plus"></i> Walk-in Order
             </a>
         </div>
     </div>
@@ -92,16 +107,29 @@
                             </span>
                         </td>
                         <td>
-                            <form action="{{ route('admin.orders.updateStatus', $ord->id) }}" method="POST" style="display:inline;">
+                            @php
+                                $curStatusObj = $orderStatuses->firstWhere('slug', $ord->order_status)
+                                    ?? \App\Models\OrderStatus::findBySlugOrName($ord->order_status);
+                                $stBgColor = $curStatusObj->bg_color ?? '#f1f5f9';
+                                $stColor = $curStatusObj->color ?? '#334155';
+                            @endphp
+                            <form action="{{ route('admin.orders.updateStatus', $ord->id) }}" method="POST" style="display:inline-block; margin:0;">
                                 @csrf
-                                <select name="order_status" onchange="this.form.submit()" style="padding: 4px 8px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; border: 1px solid #cbd5e1; background: #fff; cursor: pointer;">
-                                    <option value="pending" {{ $ord->order_status === 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="preparing" {{ $ord->order_status === 'preparing' ? 'selected' : '' }}>Preparing</option>
-                                    <option value="ready" {{ $ord->order_status === 'ready' ? 'selected' : '' }}>Ready</option>
-                                    <option value="served" {{ $ord->order_status === 'served' ? 'selected' : '' }}>Served</option>
-                                    <option value="completed" {{ $ord->order_status === 'completed' ? 'selected' : '' }}>Completed</option>
-                                    <option value="cancelled" {{ $ord->order_status === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                                </select>
+                                <div style="position:relative; display:inline-block;">
+                                    <select name="order_status" onchange="this.form.submit()" style="padding: 5px 24px 5px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; border: 1.5px solid {{ $stColor }}40; background-color: {{ $stBgColor }}; color: {{ $stColor }}; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: all 0.2s;">
+                                        @foreach($orderStatuses as $statusItem)
+                                            <option value="{{ $statusItem->slug }}" {{ $ord->order_status === $statusItem->slug ? 'selected' : '' }} style="background:#fff; color:#0f172a; font-weight:600;">
+                                                ● {{ $statusItem->name }}
+                                            </option>
+                                        @endforeach
+                                        @if(!$orderStatuses->contains('slug', $ord->order_status) && $ord->order_status)
+                                            <option value="{{ $ord->order_status }}" selected style="background:#fff; color:#0f172a; font-weight:600;">
+                                                ● {{ ucfirst(str_replace('_', ' ', $ord->order_status)) }}
+                                            </option>
+                                        @endif
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down" style="position:absolute; right:9px; top:50%; transform:translateY(-50%); font-size:0.65rem; color:{{ $stColor }}; pointer-events:none;"></i>
+                                </div>
                             </form>
                         </td>
                         <td>

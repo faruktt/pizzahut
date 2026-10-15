@@ -24,6 +24,8 @@ class User extends Authenticatable
         'password',
         'phone',
         'reward_points',
+        'is_blocked',
+        'blocked_reason',
     ];
 
     /**
@@ -46,6 +48,15 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_blocked' => 'boolean',
         ];
+    }
+
+    /**
+     * User's Orders
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

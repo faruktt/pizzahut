@@ -280,9 +280,19 @@
         <div class="info-grid">
             <div class="info-card">
                 <h4>Order Status</h4>
-                <span class="status-badge status-{{ strtolower($order->order_status) }}">
-                    {{ ucfirst($order->order_status) }}
-                </span>
+                @php
+                    $st = $order->status_object;
+                @endphp
+                @if($st)
+                    <span class="status-badge" style="background: {{ $st->bg_color }}; color: {{ $st->color }}; border: 1px solid {{ $st->color }}33; font-weight:700;">
+                        <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:{{ $st->color }}; margin-right:4px;"></span>
+                        {{ $st->name }}
+                    </span>
+                @else
+                    <span class="status-badge status-{{ strtolower($order->order_status) }}">
+                        {{ ucfirst(str_replace('_', ' ', $order->order_status)) }}
+                    </span>
+                @endif
             </div>
             <div class="info-card">
                 <h4>Order Type</h4>

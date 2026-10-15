@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Your Cart | Pizza Hut Bangladesh')
+@section('title', 'Your Cart | Italian Pizza Hut')
 
 @push('styles')
 <style>

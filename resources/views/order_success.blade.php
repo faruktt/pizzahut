@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Order Confirmed #' . $order->order_number . ' | Pizza Hut Bangladesh')
+@section('title', 'Order Confirmed #' . $order->order_number . ' | Italian Pizza Hut')
 
 @push('styles')
 <style>
@@ -168,8 +168,14 @@
                     <div style="font-size: 0.78rem; color: #777;">Type: {{ strtoupper($order->order_type) }} • Pay: {{ strtoupper($order->payment_method) }}</div>
                 </div>
                 <div>
-                    <span style="display:inline-block; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; background:#e8f5e9; color:#2e7d32;">
-                        Status: {{ ucfirst($order->order_status) }}
+                    @php
+                        $st = $order->status_object;
+                        $stBg = $st->bg_color ?? '#e8f5e9';
+                        $stCol = $st->color ?? '#2e7d32';
+                        $stName = $st->name ?? ucfirst(str_replace('_', ' ', $order->order_status));
+                    @endphp
+                    <span style="display:inline-block; padding:4px 12px; border-radius:12px; font-size:0.75rem; font-weight:700; background:{{ $stBg }}; color:{{ $stCol }}; border:1px solid {{ $stCol }}33;">
+                        ● {{ $stName }}
                     </span>
                 </div>
             </div>

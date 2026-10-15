@@ -13,8 +13,7 @@
                     <i class="fa-solid fa-location-dot"></i>
                 </div>
                 <div>
-                    <span class="card-panel-title">Restaurant Address, Contact & Google Map Location</span>
-                    <div style="font-size:0.75rem;color:#64748b;">This address displays under the logo in header/footer, and the Google Map is shown above the footer</div>
+                    <span class="card-panel-title">Address & Map</span>
                 </div>
             </div>
         </div>

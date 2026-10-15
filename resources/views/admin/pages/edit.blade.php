@@ -54,7 +54,7 @@
                     <div class="form-group" style="padding-top:24px;">
                         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-weight:700;font-size:0.9rem;color:#1e293b;">
                             <input type="checkbox" name="is_active" value="1" {{ old('is_active', $page->is_active) ? 'checked' : '' }} style="width:18px;height:18px;accent-color:var(--admin-primary);cursor:pointer;">
-                            Publish this page on website
+                            Published
                         </label>
                     </div>
                 </div>

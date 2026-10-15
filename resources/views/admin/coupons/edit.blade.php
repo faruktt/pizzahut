@@ -64,7 +64,7 @@
                     <div style="padding-top:10px;">
                         <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:700;">
                             <input type="checkbox" name="is_active" value="1" {{ old('is_active', $coupon->is_active) ? 'checked' : '' }} style="width:18px; height:18px;">
-                            <span>Active / Available for use</span>
+                            <span>Active</span>
                         </label>
                     </div>
                 </div>

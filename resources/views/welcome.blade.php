@@ -9,7 +9,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍕</text></svg>">
@@ -35,13 +35,17 @@
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
             line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6, .font-cinzel {
+            font-family: 'Playfair Display', Georgia, serif;
         }
 
         /* Ambient Glow & Background Grid */
@@ -95,7 +99,7 @@
 
         /* Typography */
         .font-cinzel {
-            font-family: 'Cinzel', serif;
+            font-family: 'Playfair Display', Georgia, serif;
         }
 
         /* Container */
@@ -323,7 +327,7 @@
         .time-number {
             font-size: clamp(1.6rem, 2.8vw, 2.4rem);
             font-weight: 800;
-            font-family: 'Cinzel', serif;
+            font-family: 'Playfair Display', Georgia, serif;
             color: #ffffff;
             line-height: 1;
             margin-bottom: 0.35rem;
@@ -475,7 +479,7 @@
         }
 
         .pizza-tagline {
-            font-family: 'Cinzel', serif;
+            font-family: 'Playfair Display', Georgia, serif;
             font-size: 1.15rem;
             color: #ffffff;
             font-weight: 700;
@@ -591,7 +595,7 @@
             font-weight: 700;
             color: #ffffff;
             margin-bottom: 0.6rem;
-            font-family: 'Cinzel', serif;
+            font-family: 'Playfair Display', Georgia, serif;
         }
 
         .feature-desc {

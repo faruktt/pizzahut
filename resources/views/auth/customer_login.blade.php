@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Sign In | Pizza Hut Bangladesh')
+@section('title', 'Sign In | Italian Pizza Hut')
 
 @push('styles')
 <style>
@@ -218,12 +218,12 @@
         <div class="auth-logo-box">
             <a href="{{ route('home') }}" style="text-decoration:none;">
                 @if(!empty($siteLogo) && file_exists(public_path('uploads/' . $siteLogo)))
-                    <img src="{{ asset('uploads/' . $siteLogo) }}" alt="{{ config('app.name', 'Pizza Hut') }}" class="auth-logo-img">
+                    <img src="{{ asset('uploads/' . $siteLogo) }}" alt="{{ config('app.name', 'Italian Pizza Hut') }}" class="auth-logo-img">
                 @else
                     <div class="auth-brand-fallback">
                         <span class="auth-brand-icon"><i class="fa-solid fa-pizza-slice"></i></span>
                         <div class="auth-brand-name">
-                            <strong>Pizza Hut</strong>
+                            <strong>Italian Pizza Hut</strong>
                             <span>BANGLADESH</span>
                         </div>
                     </div>

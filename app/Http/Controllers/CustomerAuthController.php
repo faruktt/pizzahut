@@ -34,8 +34,19 @@ class CustomerAuthController extends Controller
         ]);
 
         if (Auth::guard('web')->attempt($credentials, $request->remember)) {
+            $user = Auth::guard('web')->user();
+
+            if ($user->is_blocked) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return back()->withErrors([
+                    'email' => 'আপনার একাউন্টটি সাময়িকভাবে ব্লক করা হয়েছে। দয়া করে সাপোর্টে যোগাযোগ করুন।'
+                ])->withInput();
+            }
+
             $request->session()->regenerate();
-            return redirect()->intended(route('home'))->with('success', 'Welcome back, ' . Auth::guard('web')->user()->name);
+            return redirect()->intended(route('home'))->with('success', 'Welcome back, ' . $user->name);
         }
 
         return back()->withErrors(['email' => 'Invalid email or password.'])->withInput();

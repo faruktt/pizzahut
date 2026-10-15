@@ -68,7 +68,9 @@ class CheckoutController extends Controller
             }
         }
 
-        $deliveryCharge = 70;
+        $baseDeliveryCharge = Setting::getDeliveryCharge();
+        $freeDeliveryMin = (float) Setting::getValue('free_delivery_min', 0);
+        $deliveryCharge = ($freeDeliveryMin > 0 && $subtotal >= $freeDeliveryMin) ? 0 : $baseDeliveryCharge;
         $vatTax = round($subtotal * 0.05, 2); // 5% VAT
         $totalDiscount = $couponDiscount + $pointsDiscount;
         $total = max(0, $subtotal - $totalDiscount) + $deliveryCharge + $vatTax;
@@ -141,7 +143,13 @@ class CheckoutController extends Controller
             }
         }
 
-        $deliveryCharge = ($request->order_type === 'delivery') ? 70 : 0;
+        $baseDeliveryCharge = Setting::getDeliveryCharge();
+        $freeDeliveryMin = (float) Setting::getValue('free_delivery_min', 0);
+        if ($request->order_type === 'delivery') {
+            $deliveryCharge = ($freeDeliveryMin > 0 && $subtotal >= $freeDeliveryMin) ? 0 : $baseDeliveryCharge;
+        } else {
+            $deliveryCharge = 0;
+        }
         $vatTax = round($subtotal * 0.05, 2);
         $totalDiscount = $couponDiscount + $pointsDiscount;
         $total = max(0, $subtotal - $totalDiscount) + $deliveryCharge + $vatTax;

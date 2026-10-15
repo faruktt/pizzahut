@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pizza Hut Bangladesh | Order Best Pizzas & Deals Online')
+@section('title', 'Italian Pizza Hut | Order Best Pizzas & Deals Online')
 
 @push('styles')
 <style>
@@ -657,7 +657,7 @@
     }
 
     .modal-brand-logo {
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Playfair Display', Georgia, serif;
         font-weight: 800;
         color: var(--brand-red);
         font-size: 1.3rem;
@@ -666,6 +666,7 @@
     }
 
     .modal-heading {
+        font-family: 'Playfair Display', Georgia, serif;
         font-size: 1.15rem;
         font-weight: 800;
         color: #222;
@@ -1091,7 +1092,7 @@
         <!-- Modal Header with Brand Logo & Close Button -->
         <div class="modal-header-top">
             <button type="button" class="modal-close-btn" onclick="closeCustomizeModal()">✕</button>
-            <div class="modal-brand-logo">Pizza Hut</div>
+            <div class="modal-brand-logo">Italian Pizza Hut</div>
             <h3 class="modal-heading">Customize Your Pizza</h3>
         </div>
 

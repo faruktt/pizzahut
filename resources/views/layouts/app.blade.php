@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Pizza Hut Bangladesh | Italian Pizza Delivery')</title>
+    <title>@yield('title', 'Italian Pizza Hut | Online Delivery')</title>
     <meta name="description" content="Order the best pan pizza, deals, pasta, and sides online. Fast delivery and takeaway across Bangladesh.">
 
     {{-- Favicon (manageable from admin panel) --}}
@@ -11,17 +11,17 @@
         <link rel="icon" type="image/x-icon" href="{{ asset('uploads/' . $siteFavicon) }}">
     @endif
 
-    <!-- Fonts -->
+    <!-- Fonts: Playfair Display (Headings) & Poppins (Body & UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Self-contained Styling matching Pizza Hut Bangladesh Screenshot -->
+    <!-- Self-contained Styling for Italian Pizza Hut -->
     <style>
         :root {
             --brand-red: #c8102e;
@@ -43,18 +43,52 @@
             padding: 0;
         }
 
+        body, button, input, select, textarea, p, span, a, label, li, td, th {
+            font-family: 'Poppins', sans-serif;
+        }
+
         body {
-            font-family: 'Open Sans', sans-serif;
+            font-family: 'Poppins', sans-serif;
             color: var(--text-dark);
             background-color: #fbfbfb;
-            line-height: 1.5;
+            line-height: 1.6;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3, h4, .brand-font {
-            font-family: 'Poppins', sans-serif;
+        /* Headings in Playfair Display for Luxury Premium Italian Feel */
+        h1, h2, h3, h4, h5, h6,
+        .heading-font,
+        .section-title,
+        .section-header,
+        .section-title-line,
+        .card-heading,
+        .cart-main-heading,
+        .checkout-heading,
+        .modal-heading,
+        .hero-title,
+        .banner-title-super,
+        .deal-hero-title,
+        .deal-card-title,
+        .pizza-card-title,
+        .combo-hero-title,
+        .combo-card-title,
+        .dashboard-title,
+        .orders-title,
+        .detail-title,
+        .success-title,
+        .brand-font,
+        .brand-logo-text strong,
+        .modal-brand-logo,
+        .cms-title,
+        .map-section-title,
+        .footer-col h4,
+        .auth-clean-card h2,
+        .auth-clean-card h3 {
+            font-family: 'Playfair Display', Georgia, 'Times New Roman', serif !important;
+            letter-spacing: -0.2px;
         }
 
         a {
@@ -671,7 +705,7 @@
                         @else
                             <span class="brand-logo-icon"><i class="fa-solid fa-pizza-slice"></i></span>
                             <div class="brand-logo-text">
-                                <strong>Pizza Hut</strong>
+                                <strong>Italian Pizza Hut</strong>
                                 <span>BANGLADESH</span>
                             </div>
                         @endif
@@ -897,8 +931,8 @@
             </div>
 
             <div class="footer-bottom">
-                <div>© {{ date('Y') }}. Pizza Hut Bangladesh. All rights reserved.</div>
-                <div>Powered by <strong>Transcom / Italian Pizza Ltd.</strong></div>
+                <div>© {{ date('Y') }}. Italian Pizza Hut. All rights reserved.</div>
+                <div>Powered by <strong>Italian Pizza Hut Ltd.</strong></div>
             </div>
         </div>
     </footer>

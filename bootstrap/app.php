@@ -11,7 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->web(append: [
+            \App\Http\Middleware\CheckUserBlocked::class,
+        ]);
+
+        $middleware->alias([
+            'admin.permission' => \App\Http\Middleware\CheckAdminPermission::class,
+            'user.not_blocked' => \App\Http\Middleware\CheckUserBlocked::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

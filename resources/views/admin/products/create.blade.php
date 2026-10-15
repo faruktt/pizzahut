@@ -73,10 +73,7 @@
         <div class="card-panel" style="margin-bottom:20px;">
             <div class="card-panel-header" style="justify-content:space-between;">
                 <div>
-                    <span class="card-panel-title"><i class="fa-solid fa-layer-group"></i> Product Variations (Sizes & Crusts)</span>
-                    <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">
-                        Select size(s), then choose crusts with specific price & image for each variation.
-                    </div>
+                    <span class="card-panel-title"><i class="fa-solid fa-layer-group"></i> Variations (Sizes & Crusts)</span>
                 </div>
                 <div style="display:flex;gap:8px;">
                     <a href="{{ route('admin.sizes.index') }}" target="_blank" class="btn btn-secondary btn-sm" title="Add new sizes">
@@ -92,7 +89,7 @@
                 {{-- 1. Step: Select Sizes --}}
                 <div style="margin-bottom:20px;">
                     <label class="form-label" style="font-size:0.9rem;font-weight:700;margin-bottom:10px;display:block;">
-                        Step 1: Choose Available Sizes
+                        Available Sizes
                     </label>
 
                     @if($sizes->isNotEmpty())

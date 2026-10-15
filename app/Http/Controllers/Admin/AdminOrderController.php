@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderItemAddon;
+use App\Models\OrderStatus;
 use App\Models\Product;
 use App\Models\RestaurantTable;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,21 +39,24 @@ class AdminOrderController extends Controller
         }
 
         $orders = $query->paginate(15);
+        $orderStatuses = OrderStatus::where('is_active', true)->orderBy('sort_order')->get();
 
-        return view('admin.orders.index', compact('orders'));
+        return view('admin.orders.index', compact('orders', 'orderStatuses'));
     }
 
     public function show($id)
     {
         $order = Order::with(['table', 'user', 'items.addons'])->findOrFail($id);
-        return view('admin.orders.show', compact('order'));
+        $orderStatuses = OrderStatus::where('is_active', true)->orderBy('sort_order')->get();
+
+        return view('admin.orders.show', compact('order', 'orderStatuses'));
     }
 
     public function updateStatus(Request $request, $id)
     {
         $order = Order::findOrFail($id);
         $request->validate([
-            'order_status' => 'required|in:pending,preparing,ready,served,completed,cancelled',
+            'order_status' => 'required|string|max:50',
             'payment_status' => 'nullable|in:pending,paid',
         ]);
 
@@ -67,7 +72,10 @@ class AdminOrderController extends Controller
 
         $order->save();
 
-        return back()->with('success', "Order #{$order->order_number} status updated to {$order->order_status}.");
+        $statusObj = OrderStatus::findBySlugOrName($request->order_status);
+        $statusName = $statusObj ? $statusObj->name : ucfirst(str_replace('_', ' ', $order->order_status));
+
+        return back()->with('success', "Order #{$order->order_number} status updated to \"{$statusName}\".");
     }
 
     /**
@@ -94,9 +102,13 @@ class AdminOrderController extends Controller
             $subtotal += ($item['unit_price'] * $item['quantity']);
         }
 
-        $deliveryCharge = ($request->order_type === 'delivery') ? 70 : 0;
+        $baseDeliveryCharge = Setting::getDeliveryCharge();
+        $freeDeliveryMin = (float) Setting::getValue('free_delivery_min', 0);
+        $deliveryCharge = ($request->order_type === 'delivery') ? (($freeDeliveryMin > 0 && $subtotal >= $freeDeliveryMin) ? 0 : $baseDeliveryCharge) : 0;
         $vatTax = round($subtotal * 0.05, 2);
         $total = $subtotal + $deliveryCharge + $vatTax;
+
+        $initialStatus = OrderStatus::where('is_default', true)->value('slug') ?? 'preparing';
 
         $order = Order::create([
             'order_number' => 'ORD-' . strtoupper(Str::random(6)),
@@ -112,7 +124,7 @@ class AdminOrderController extends Controller
             'total_amount' => $total,
             'payment_method' => $request->payment_method ?? 'cash',
             'payment_status' => $request->payment_status ?? 'paid',
-            'order_status' => 'preparing',
+            'order_status' => $initialStatus,
             'special_instructions' => $request->special_instructions,
         ]);
 

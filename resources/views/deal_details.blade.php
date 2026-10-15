@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $deal->name . ' Combo Deal | Pizza Hut Bangladesh')
+@section('title', $deal->name . ' Combo Deal | Italian Pizza Hut')
 
 @push('styles')
 <style>

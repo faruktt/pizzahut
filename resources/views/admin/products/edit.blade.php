@@ -83,10 +83,7 @@
         <div class="card-panel" style="margin-bottom:20px;">
             <div class="card-panel-header" style="justify-content:space-between;">
                 <div>
-                    <span class="card-panel-title"><i class="fa-solid fa-layer-group"></i> Product Variations (Sizes & Crusts)</span>
-                    <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">
-                        Configure crusts, individual prices, and specific images for each size.
-                    </div>
+                    <span class="card-panel-title"><i class="fa-solid fa-layer-group"></i> Variations (Sizes & Crusts)</span>
                 </div>
                 <div style="display:flex;gap:8px;">
                     <a href="{{ route('admin.sizes.index') }}" target="_blank" class="btn btn-secondary btn-sm">

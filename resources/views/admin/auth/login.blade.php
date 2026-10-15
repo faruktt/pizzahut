@@ -3,13 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Portal Login | Pizza Hut</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Admin Portal Login | Italian Pizza Hut</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: #f8fafc;
             min-height: 100vh;
             display: flex;
@@ -61,6 +63,7 @@
             font-size: 1.5rem;
             font-weight: 900;
             color: #c8102e;
+            font-family: 'Playfair Display', Georgia, serif;
         }
         .brand-fallback-text span {
             display: block;
@@ -168,7 +171,7 @@
                 <div class="brand-fallback">
                     <span class="brand-fallback-icon"><i class="fa-solid fa-pizza-slice"></i></span>
                     <div class="brand-fallback-text">
-                        <strong>Pizza Hut</strong>
+                        <strong>Italian Pizza Hut</strong>
                         <span>ADMIN PORTAL</span>
                     </div>
                 </div>

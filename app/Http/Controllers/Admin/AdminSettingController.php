@@ -77,6 +77,27 @@ class AdminSettingController extends Controller
         return redirect()->back()->with('success', 'Reward points conversion settings updated successfully!');
     }
 
+    public function shippingIndex()
+    {
+        $deliveryCharge  = (float) Setting::getValue('delivery_charge', 70);
+        $freeDeliveryMin = (float) Setting::getValue('free_delivery_min', 0);
+
+        return view('admin.settings.shipping', compact('deliveryCharge', 'freeDeliveryMin'));
+    }
+
+    public function updateShipping(Request $request)
+    {
+        $request->validate([
+            'delivery_charge'   => 'required|numeric|min:0',
+            'free_delivery_min' => 'nullable|numeric|min:0',
+        ]);
+
+        Setting::setValue('delivery_charge', $request->delivery_charge);
+        Setting::setValue('free_delivery_min', $request->input('free_delivery_min', 0));
+
+        return redirect()->back()->with('success', 'Shipping / delivery charge updated successfully! Customers will be charged ৳ ' . number_format($request->delivery_charge) . ' on delivery orders.');
+    }
+
     public function updateLogo(Request $request)
     {
         $request->validate([

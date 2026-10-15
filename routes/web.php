@@ -24,7 +24,7 @@ use App\Http\Middleware\AdminRedirectIfAuthenticated;
 
 /*
 |--------------------------------------------------------------------------
-| Customer & Frontend Routes (Pizza Hut / Italian Pizza Experience)
+| Customer & Frontend Routes (Italian Pizza Hut Experience)
 |--------------------------------------------------------------------------
 */
 
@@ -116,6 +116,15 @@ Route::prefix('admin')->middleware(AdminAuthenticate::class)->group(function () 
     Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
     Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
 
+    // Dynamic Order Statuses CRUD
+    Route::get('/order-statuses', [\App\Http\Controllers\Admin\AdminOrderStatusController::class, 'index'])->name('admin.order-statuses.index');
+    Route::get('/order-statuses/create', [\App\Http\Controllers\Admin\AdminOrderStatusController::class, 'create'])->name('admin.order-statuses.create');
+    Route::post('/order-statuses', [\App\Http\Controllers\Admin\AdminOrderStatusController::class, 'store'])->name('admin.order-statuses.store');
+    Route::get('/order-statuses/{id}/edit', [\App\Http\Controllers\Admin\AdminOrderStatusController::class, 'edit'])->name('admin.order-statuses.edit');
+    Route::put('/order-statuses/{id}', [\App\Http\Controllers\Admin\AdminOrderStatusController::class, 'update'])->name('admin.order-statuses.update');
+    Route::delete('/order-statuses/{id}', [\App\Http\Controllers\Admin\AdminOrderStatusController::class, 'destroy'])->name('admin.order-statuses.destroy');
+    Route::post('/order-statuses/{id}/toggle', [\App\Http\Controllers\Admin\AdminOrderStatusController::class, 'toggleStatus'])->name('admin.order-statuses.toggle');
+
     // Products Management (Sizes, Crusts, Prices)
     Route::get('/products', [AdminProductController::class, 'index'])->name('admin.products.index');
     Route::get('/products/create', [AdminProductController::class, 'create'])->name('admin.products.create');
@@ -194,6 +203,8 @@ Route::prefix('admin')->middleware(AdminAuthenticate::class)->group(function () 
     Route::delete('/settings/favicon', [AdminSettingController::class, 'removeFavicon'])->name('admin.settings.favicon.remove');
     Route::get('/settings/points', [AdminSettingController::class, 'pointsIndex'])->name('admin.settings.points');
     Route::post('/settings/points', [AdminSettingController::class, 'updatePoints'])->name('admin.settings.points.update');
+    Route::get('/settings/shipping', [AdminSettingController::class, 'shippingIndex'])->name('admin.settings.shipping');
+    Route::post('/settings/shipping', [AdminSettingController::class, 'updateShipping'])->name('admin.settings.shipping.update');
 
     // Website CMS Pages CRUD
     Route::get('/pages', [\App\Http\Controllers\Admin\AdminPageController::class, 'index'])->name('admin.pages.index');
@@ -203,5 +214,42 @@ Route::prefix('admin')->middleware(AdminAuthenticate::class)->group(function () 
     Route::put('/pages/{id}', [\App\Http\Controllers\Admin\AdminPageController::class, 'update'])->name('admin.pages.update');
     Route::delete('/pages/{id}', [\App\Http\Controllers\Admin\AdminPageController::class, 'destroy'])->name('admin.pages.destroy');
     Route::post('/pages/{id}/toggle', [\App\Http\Controllers\Admin\AdminPageController::class, 'toggleStatus'])->name('admin.pages.toggleStatus');
+
+    // Admin Profile & Password Management
+    Route::get('/profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'edit'])->name('admin.profile');
+    Route::put('/profile', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updateProfile'])->name('admin.profile.update');
+    Route::put('/profile/password', [\App\Http\Controllers\Admin\AdminProfileController::class, 'updatePassword'])->name('admin.profile.password');
+
+    // Customer / User Management & Account Blocking
+    Route::middleware('admin.permission:users.view')->group(function () {
+        Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('admin.users.index');
+        Route::get('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'show'])->name('admin.users.show');
+    });
+    Route::post('/users/{id}/toggle-block', [\App\Http\Controllers\Admin\AdminUserController::class, 'toggleBlock'])
+        ->middleware('admin.permission:users.block')
+        ->name('admin.users.toggleBlock');
+    Route::delete('/users/{id}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])
+        ->middleware('admin.permission:users.delete')
+        ->name('admin.users.destroy');
+
+    // Role & Permission Management
+    Route::middleware('admin.permission:roles.manage')->group(function () {
+        Route::get('/roles', [\App\Http\Controllers\Admin\AdminRoleController::class, 'index'])->name('admin.roles.index');
+        Route::get('/roles/create', [\App\Http\Controllers\Admin\AdminRoleController::class, 'create'])->name('admin.roles.create');
+        Route::post('/roles', [\App\Http\Controllers\Admin\AdminRoleController::class, 'store'])->name('admin.roles.store');
+        Route::get('/roles/{id}/edit', [\App\Http\Controllers\Admin\AdminRoleController::class, 'edit'])->name('admin.roles.edit');
+        Route::put('/roles/{id}', [\App\Http\Controllers\Admin\AdminRoleController::class, 'update'])->name('admin.roles.update');
+        Route::delete('/roles/{id}', [\App\Http\Controllers\Admin\AdminRoleController::class, 'destroy'])->name('admin.roles.destroy');
+    });
+
+    // Staff / Sub-Admin Management
+    Route::middleware('admin.permission:admins.manage')->group(function () {
+        Route::get('/staff', [\App\Http\Controllers\Admin\AdminStaffController::class, 'index'])->name('admin.staff.index');
+        Route::get('/staff/create', [\App\Http\Controllers\Admin\AdminStaffController::class, 'create'])->name('admin.staff.create');
+        Route::post('/staff', [\App\Http\Controllers\Admin\AdminStaffController::class, 'store'])->name('admin.staff.store');
+        Route::get('/staff/{id}/edit', [\App\Http\Controllers\Admin\AdminStaffController::class, 'edit'])->name('admin.staff.edit');
+        Route::put('/staff/{id}', [\App\Http\Controllers\Admin\AdminStaffController::class, 'update'])->name('admin.staff.update');
+        Route::delete('/staff/{id}', [\App\Http\Controllers\Admin\AdminStaffController::class, 'destroy'])->name('admin.staff.destroy');
+    });
 });
 

@@ -498,7 +498,18 @@ class CartController extends Controller
             session()->forget('points');
         }
 
-        $deliveryCharge = count($cart) > 0 ? 70 : 0;
+        $baseDeliveryCharge = \App\Models\Setting::getDeliveryCharge();
+        $freeDeliveryMin = (float) \App\Models\Setting::getValue('free_delivery_min', 0);
+        if (count($cart) > 0) {
+            if ($freeDeliveryMin > 0 && $subtotal >= $freeDeliveryMin) {
+                $deliveryCharge = 0;
+            } else {
+                $deliveryCharge = $baseDeliveryCharge;
+            }
+        } else {
+            $deliveryCharge = 0;
+        }
+
         $discountTotal = $couponDiscount + $pointsDiscount;
         $total = max(0, $subtotal - $discountTotal) + $deliveryCharge;
 

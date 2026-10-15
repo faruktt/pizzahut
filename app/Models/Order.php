@@ -54,4 +54,24 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function statusRecord()
+    {
+        return $this->belongsTo(OrderStatus::class, 'order_status', 'slug');
+    }
+
+    public function orderStatus()
+    {
+        return $this->belongsTo(OrderStatus::class, 'order_status', 'slug');
+    }
+
+    public function getStatusObjectAttribute()
+    {
+        return OrderStatus::findBySlugOrName($this->order_status);
+    }
+
+    public function getGrandTotalAttribute()
+    {
+        return $this->total_amount ?? 0;
+    }
 }
