@@ -34,21 +34,21 @@ class AdminProductController extends Controller
 
     public function create()
     {
-        $categories        = Category::where('is_active', true)->orderBy('sort_order')->get();
-        $sizes             = Size::where('is_active', true)->orderBy('name')->get();
-        $crusts            = Crust::where('is_active', true)->orderBy('name')->get();
-        $availableProducts = Product::where('is_deal', false)->where('is_active', true)->get();
-        return view('admin.products.create', compact('categories', 'sizes', 'crusts', 'availableProducts'));
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
+        $sizes      = Size::where('is_active', true)->orderBy('name')->get();
+        $crusts     = Crust::where('is_active', true)->orderBy('name')->get();
+        return view('admin.products.create', compact('categories', 'sizes', 'crusts'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'        => 'required|string|max:150',
-            'category_id' => 'required|exists:categories,id',
-            'base_price'  => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
+            'name'          => 'required|string|max:150',
+            'category_id'   => 'required|exists:categories,id',
+            'base_price'    => 'required|numeric|min:0',
+            'reward_points' => 'nullable|integer|min:0',
+            'description'   => 'nullable|string',
+            'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
         ]);
 
         $data = [
@@ -57,9 +57,10 @@ class AdminProductController extends Controller
             'category_id'   => $request->category_id,
             'description'   => $request->description,
             'base_price'    => $request->base_price,
+            'reward_points' => (int) $request->input('reward_points', 0),
             'is_bestseller' => $request->has('is_bestseller'),
             'is_new'        => $request->has('is_new'),
-            'is_deal'       => $request->has('is_deal'),
+            'is_deal'       => false,
             'is_active'     => true,
         ];
 
@@ -75,20 +76,15 @@ class AdminProductController extends Controller
         // Process Product Variations (Size + Crust with individual price and image)
         $this->syncVariations($request, $product);
 
-        if ($request->has('is_deal') && $request->filled('combo_product_ids')) {
-            $product->comboProducts()->sync($request->combo_product_ids);
-        }
-
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
 
     public function edit($id)
     {
-        $product           = Product::with(['allVariations', 'sizes', 'crusts', 'comboProducts'])->findOrFail($id);
-        $categories        = Category::where('is_active', true)->orderBy('sort_order')->get();
-        $sizes             = Size::where('is_active', true)->orderBy('name')->get();
-        $crusts            = Crust::where('is_active', true)->orderBy('name')->get();
-        $availableProducts = Product::where('id', '!=', $id)->where('is_deal', false)->get();
+        $product    = Product::with(['allVariations', 'sizes', 'crusts'])->findOrFail($id);
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
+        $sizes      = Size::where('is_active', true)->orderBy('name')->get();
+        $crusts     = Crust::where('is_active', true)->orderBy('name')->get();
 
         // Map variations by size_id and crust_id: [size_id => [crust_id => variation]]
         $existingVariations = [];
@@ -100,7 +96,7 @@ class AdminProductController extends Controller
 
         return view('admin.products.edit', compact(
             'product', 'categories', 'sizes', 'crusts',
-            'availableProducts', 'existingVariations', 'selectedSizeIds'
+            'existingVariations', 'selectedSizeIds'
         ));
     }
 
@@ -109,11 +105,12 @@ class AdminProductController extends Controller
         $product = Product::findOrFail($id);
 
         $request->validate([
-            'name'        => 'required|string|max:150',
-            'category_id' => 'required|exists:categories,id',
-            'base_price'  => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
+            'name'          => 'required|string|max:150',
+            'category_id'   => 'required|exists:categories,id',
+            'base_price'    => 'required|numeric|min:0',
+            'reward_points' => 'nullable|integer|min:0',
+            'description'   => 'nullable|string',
+            'image'         => 'nullable|image|mimes:jpg,jpeg,png,webp|max:3072',
         ]);
 
         $data = [
@@ -121,9 +118,9 @@ class AdminProductController extends Controller
             'category_id'   => $request->category_id,
             'description'   => $request->description,
             'base_price'    => $request->base_price,
+            'reward_points' => (int) $request->input('reward_points', 0),
             'is_bestseller' => $request->has('is_bestseller'),
             'is_new'        => $request->has('is_new'),
-            'is_deal'       => $request->has('is_deal'),
             'is_active'     => $request->has('is_active'),
         ];
 
@@ -141,12 +138,6 @@ class AdminProductController extends Controller
 
         // Process Product Variations
         $this->syncVariations($request, $product);
-
-        if ($request->has('is_deal') && $request->filled('combo_product_ids')) {
-            $product->comboProducts()->sync($request->combo_product_ids);
-        } else {
-            $product->comboProducts()->detach();
-        }
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }

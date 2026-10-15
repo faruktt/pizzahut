@@ -12,8 +12,8 @@
                 <div style="font-size:0.8rem; color:#64748b;">Placed on {{ $order->created_at->format('d M Y, h:i A') }}</div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button type="button" onclick="window.print()" class="btn-view-store">🖨️ Print Invoice</button>
-                <a href="{{ route('admin.orders.index') }}" class="btn-view-store">« Back</a>
+                <button type="button" onclick="window.print()" class="btn-view-store"><i class="fa-solid fa-print"></i> Print Invoice</button>
+                <a href="{{ route('admin.orders.index') }}" class="btn-view-store"><i class="fa-solid fa-arrow-left"></i> Back</a>
             </div>
         </div>
 
@@ -97,7 +97,7 @@
                                     <strong>{{ $item->product_name }}</strong>
                                     @if($item->combo_details)
                                         <div style="font-size:0.75rem; color:var(--admin-primary); font-weight:700; margin-top:2px;">
-                                            🍕 Combo: {{ $item->combo_details }}
+                                            <i class="fa-solid fa-pizza-slice" style="margin-right:4px;"></i> Combo: {{ $item->combo_details }}
                                         </div>
                                     @endif
                                 </td>
@@ -126,6 +126,18 @@
                     <span>Subtotal:</span>
                     <strong>৳ {{ number_format($order->subtotal) }}</strong>
                 </div>
+                @if($order->coupon_discount > 0)
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px; color:#16a34a;">
+                        <span><i class="fa-solid fa-ticket" style="margin-right:4px;"></i> Coupon ({{ $order->coupon_code }}):</span>
+                        <strong>-৳ {{ number_format($order->coupon_discount) }}</strong>
+                    </div>
+                @endif
+                @if($order->points_discount > 0)
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px; color:#16a34a;">
+                        <span><i class="fa-solid fa-coins" style="margin-right:4px; color:#f59e0b;"></i> Points ({{ $order->points_used }} pts):</span>
+                        <strong>-৳ {{ number_format($order->points_discount) }}</strong>
+                    </div>
+                @endif
                 <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
                     <span>Delivery Charge:</span>
                     <strong>৳ {{ number_format($order->delivery_charge) }}</strong>
@@ -138,6 +150,11 @@
                     <span>Grand Total:</span>
                     <span>৳ {{ number_format($order->total_amount) }}</span>
                 </div>
+                @if($order->points_earned > 0)
+                    <div style="margin-top:8px; font-size:0.78rem; color:#065f46; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:6px; padding:6px 8px; text-align:center;">
+                        <i class="fa-solid fa-coins" style="color:#10b981;"></i> Customer earned +{{ $order->points_earned }} Reward Points
+                    </div>
+                @endif
             </div>
         </div>
     </div>

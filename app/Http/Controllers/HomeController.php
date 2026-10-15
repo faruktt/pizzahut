@@ -17,12 +17,8 @@ class HomeController extends Controller
     public function index()
     {
         $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
-        
-        $topDeals = Product::where('is_deal', true)
-            ->where('is_active', true)
-            ->get();
 
-        // New Combo section
+        // Combo section
         $combos = Combo::where('is_active', true)
             ->withCount('products')
             ->orderBy('sort_order')
@@ -40,7 +36,7 @@ class HomeController extends Controller
         $cart = session()->get('cart', []);
         $cartCount = array_sum(array_column($cart, 'quantity'));
 
-        return view('home', compact('categories', 'topDeals', 'combos', 'bestSellers', 'addons', 'banners', 'cartCount'));
+        return view('home', compact('categories', 'combos', 'bestSellers', 'addons', 'banners', 'cartCount'));
     }
 
     /**
@@ -58,5 +54,17 @@ class HomeController extends Controller
             'crusts' => $product->crusts,
             'addons' => $addons,
         ]);
+    }
+
+    /**
+     * Show custom CMS page by slug.
+     */
+    public function showPage($slug)
+    {
+        $page = \App\Models\Page::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $cart = session()->get('cart', []);
+        $cartCount = array_sum(array_column($cart, 'quantity'));
+
+        return view('page', compact('page', 'cartCount'));
     }
 }

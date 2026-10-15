@@ -543,7 +543,7 @@ function toggleSelect(productId, productName) {
             image: vData.image || '',
         };
         document.getElementById('prod-card-' + productId).classList.add('selected');
-        document.getElementById('sel-btn-' + productId).innerHTML = '<i class="fa-solid fa-circle-check"></i> Selected ✓';
+        document.getElementById('sel-btn-' + productId).innerHTML = '<i class="fa-solid fa-circle-check"></i> Selected';
         document.getElementById('sel-btn-' + productId).classList.add('selected-btn');
     }
 
@@ -589,7 +589,15 @@ function renderSummary() {
     ).join('');
 }
 
+const isCustomerLoggedIn = {{ Auth::guard('web')->check() ? 'true' : 'false' }};
+const customerLoginUrl = "{{ route('login') }}";
+
 function submitCombo() {
+    if (!isCustomerLoggedIn) {
+        window.location.href = customerLoginUrl;
+        return;
+    }
+
     const items = Object.values(selectedItems);
     if (items.length === 0) {
         showToast('Please select at least 1 item!', 'error');

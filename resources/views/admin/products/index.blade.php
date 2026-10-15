@@ -59,9 +59,8 @@
                     {{ $product->variations->isNotEmpty() ? $product->variations->pluck('crust_name')->unique()->filter()->join(', ') : ($product->crusts->pluck('name')->join(', ') ?: '—') }}
                 </td>
                 <td>
-                    @if($product->is_bestseller)<span class="badge" style="background:#fef3c7;color:#b45309;"><i class="fa-solid fa-fire"></i></span> @endif
-                    @if($product->is_new)<span class="badge" style="background:#dbeafe;color:#1d4ed8;"><i class="fa-solid fa-star"></i></span> @endif
-                    @if($product->is_deal)<span class="badge" style="background:#dcfce7;color:#15803d;"><i class="fa-solid fa-percent"></i></span> @endif
+                    @if($product->is_bestseller)<span class="badge" style="background:#fef3c7;color:#b45309;" title="Bestseller"><i class="fa-solid fa-fire"></i></span> @endif
+                    @if($product->is_new)<span class="badge" style="background:#dbeafe;color:#1d4ed8;" title="New"><i class="fa-solid fa-star"></i></span> @endif
                 </td>
                 <td>
                     <span class="badge {{ $product->is_active ? 'badge-active' : 'badge-inactive' }}">

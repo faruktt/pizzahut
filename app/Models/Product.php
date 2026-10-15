@@ -16,6 +16,7 @@ class Product extends Model
         'description',
         'image',
         'base_price',
+        'reward_points',
         'is_deal',
         'is_bestseller',
         'is_new',
@@ -49,8 +50,7 @@ class Product extends Model
 
     public function comboProducts()
     {
-        return $this->belongsToMany(Product::class, 'deal_combos', 'deal_id', 'product_id')
-                    ->withPivot('quantity', 'notes')
+        return $this->belongsToMany(Product::class, 'deal_products', 'deal_id', 'product_id')
                     ->withTimestamps();
     }
 }

@@ -23,11 +23,12 @@
 
     <style>
         :root {
-            --admin-primary: #c8102e;
-            --admin-primary-soft: #fde8eb;
-            --sidebar-bg: #f8fafc;
+            --admin-primary: #e31837;
+            --admin-primary-soft: rgba(227, 24, 55, 0.12);
+            --sidebar-bg: #090d16;
+            --sidebar-border: #172033;
             --header-bg: #ffffff;
-            --page-bg: #f1f5f9;
+            --page-bg: #f8fafc;
             --card-bg: #ffffff;
             --text-main: #0f172a;
             --text-sub: #64748b;
@@ -51,80 +52,175 @@
 
         a { text-decoration: none; color: inherit; }
 
-        /* SIDEBAR */
+        /* SIDEBAR - Ultra-Premium Dark Luxury */
         aside.admin-sidebar {
-            width: 250px;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border-light);
+            width: 260px;
+            background: linear-gradient(180deg, #090d16 0%, #0d1322 100%);
+            border-right: 1px solid var(--sidebar-border);
             display: flex;
             flex-direction: column;
             position: fixed;
             top: 0; bottom: 0; left: 0;
             z-index: 100;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
         }
 
         .sidebar-brand-box {
-            padding: 20px 16px;
+            padding: 22px 18px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid var(--border-light);
-            background: #fff;
+            gap: 12px;
+            border-bottom: 1px solid var(--sidebar-border);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
         }
 
         .sidebar-logo-icon {
-            width: 38px; height: 38px;
-            background: linear-gradient(135deg, var(--admin-primary), #a50b24);
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, #e31837 0%, #990011 100%);
             color: #fff;
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 12px rgba(200,16,46,0.25);
+            font-size: 1.25rem;
+            box-shadow: 0 6px 16px rgba(227, 24, 55, 0.35);
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
-        .sidebar-brand-title { font-size: 1rem; font-weight: 800; color: #0f172a; }
-        .sidebar-brand-sub { font-size: 0.68rem; color: var(--text-sub); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sidebar-brand-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sidebar-brand-badge {
+            font-size: 0.6rem;
+            font-weight: 800;
+            background: rgba(227, 24, 55, 0.25);
+            color: #ff6b81;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(227, 24, 55, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-brand-sub {
+            font-size: 0.68rem;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-top: 2px;
+        }
 
         .sidebar-nav {
-            padding: 16px 10px;
+            padding: 16px 12px;
             flex: 1;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 3px;
+        }
+
+        .sidebar-nav::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
         }
 
         .nav-section-title {
-            font-size: 0.67rem;
+            font-size: 0.65rem;
             font-weight: 800;
-            color: #94a3b8;
+            color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 10px 10px 4px;
+            letter-spacing: 1.2px;
+            padding: 14px 10px 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .nav-item-link {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 9px 12px;
-            border-radius: 7px;
-            font-size: 0.85rem;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 9px;
+            font-size: 0.86rem;
             font-weight: 600;
-            color: var(--text-sub);
-            transition: all 0.2s;
+            color: #94a3b8;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
 
-        .nav-item-link i { width: 16px; text-align: center; font-size: 0.9rem; }
-        .nav-item-link:hover { background: #f1f5f9; color: var(--text-main); }
-        .nav-item-link.active { background: var(--admin-primary-soft); color: var(--admin-primary); font-weight: 700; }
+        .nav-item-link i {
+            width: 18px;
+            text-align: center;
+            font-size: 0.95rem;
+            color: #64748b;
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .nav-item-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #f8fafc;
+            transform: translateX(2px);
+        }
+
+        .nav-item-link:hover i {
+            color: #ffffff;
+        }
+
+        .nav-item-link.active {
+            background: linear-gradient(90deg, rgba(227, 24, 55, 0.2) 0%, rgba(227, 24, 55, 0.04) 100%);
+            color: #ffffff;
+            font-weight: 700;
+            border-left: 3px solid #e31837;
+            padding-left: 11px;
+            box-shadow: inset 0 0 16px rgba(227, 24, 55, 0.08);
+        }
+
+        .nav-item-link.active i {
+            color: #ff4d6d;
+            filter: drop-shadow(0 0 8px rgba(227, 24, 55, 0.6));
+        }
 
         .nav-item-link.pos-highlight {
-            background: #e0f2fe; color: #0284c7;
-            border: 1px dashed #38bdf8; font-weight: 800;
+            background: linear-gradient(90deg, rgba(14, 165, 233, 0.12) 0%, rgba(14, 165, 233, 0.02) 100%);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            font-weight: 700;
         }
+
+        .nav-item-link.pos-highlight i {
+            color: #38bdf8;
+        }
+
+        .nav-item-link.pos-highlight:hover {
+            background: linear-gradient(90deg, rgba(14, 165, 233, 0.2) 0%, rgba(14, 165, 233, 0.08) 100%);
+            color: #7dd3fc;
+            border-color: rgba(56, 189, 248, 0.45);
+        }
+
         .nav-item-link.pos-highlight.active {
-            background: #0284c7; color: #fff; border: 1px solid #0284c7;
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+            border-left: 3px solid #38bdf8;
+            padding-left: 11px;
         }
 
         /* Sub-menu style */
@@ -134,18 +230,24 @@
         .nav-item-link.has-sub.open::after { transform: rotate(180deg); }
 
         .sidebar-footer {
-            padding: 14px;
-            border-top: 1px solid var(--border-light);
-            background: #fff;
+            padding: 16px;
+            border-top: 1px solid var(--sidebar-border);
+            background: rgba(11, 16, 27, 0.95);
         }
 
         .admin-profile-pill {
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 8px 10px;
         }
 
         /* MAIN WRAPPER */
         .admin-main-wrap {
-            margin-left: 250px;
+            margin-left: 260px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -293,7 +395,9 @@
         <div class="sidebar-brand-box">
             <div class="sidebar-logo-icon"><i class="fa-solid fa-pizza-slice"></i></div>
             <div>
-                <div class="sidebar-brand-title">Italian Pizza</div>
+                <div class="sidebar-brand-title">
+                    Italian Pizza <span class="sidebar-brand-badge">PRO</span>
+                </div>
                 <div class="sidebar-brand-sub">Admin & POS Manager</div>
             </div>
         </div>
@@ -331,16 +435,28 @@
             <a href="{{ route('admin.crusts.index') }}" class="nav-item-link {{ request()->routeIs('admin.crusts.*') ? 'active' : '' }}">
                 <i class="fa-solid fa-circle-half-stroke"></i><span>Crusts</span>
             </a>
+            <a href="{{ route('admin.addons.index') }}" class="nav-item-link {{ request()->routeIs('admin.addons.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-plus-circle"></i><span>Add Ons</span>
+            </a>
             <a href="{{ route('admin.tables.index') }}" class="nav-item-link {{ request()->routeIs('admin.tables.*') ? 'active' : '' }}">
                 <i class="fa-solid fa-table-cells"></i><span>Dining Tables</span>
             </a>
 
-            <div class="nav-section-title">Website</div>
+            <div class="nav-section-title">Marketing & Website</div>
+            <a href="{{ route('admin.coupons.index') }}" class="nav-item-link {{ request()->routeIs('admin.coupons.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-ticket"></i><span>Coupons</span>
+            </a>
+            <a href="{{ route('admin.settings.points') }}" class="nav-item-link {{ request()->routeIs('admin.settings.points*') ? 'active' : '' }}">
+                <i class="fa-solid fa-coins"></i><span>Reward Points</span>
+            </a>
+            <a href="{{ route('admin.pages.index') }}" class="nav-item-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-file-lines"></i><span>Pages (CMS)</span>
+            </a>
             <a href="{{ route('admin.banners.index') }}" class="nav-item-link {{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
                 <i class="fa-solid fa-images"></i><span>Banners</span>
             </a>
-            <a href="{{ route('admin.settings.index') }}" class="nav-item-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-                <i class="fa-solid fa-gear"></i><span>Logo & Favicon</span>
+            <a href="{{ route('admin.settings.index') }}" class="nav-item-link {{ request()->routeIs('admin.settings.index') ? 'active' : '' }}">
+                <i class="fa-solid fa-sliders"></i><span>Store & Map Settings</span>
             </a>
             <a href="{{ route('home') }}" target="_blank" class="nav-item-link">
                 <i class="fa-solid fa-globe"></i><span>View Frontend</span>
@@ -349,19 +465,20 @@
 
         <div class="sidebar-footer">
             <div class="admin-profile-pill">
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <div style="width:32px;height:32px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-weight:800;color:#475569;font-size:0.85rem;">
-                        <i class="fa-solid fa-user-tie" style="color:#64748b;"></i>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="position:relative;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg, #1e293b, #0f172a);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;color:#e2e8f0;font-size:0.95rem;">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span style="position:absolute;bottom:-1px;right:-1px;width:8px;height:8px;background:#10b981;border-radius:50%;border:2px solid #090d16;box-shadow:0 0 6px #10b981;"></span>
                     </div>
                     <div>
-                        <div style="font-size:0.8rem;font-weight:700;color:#0f172a;">{{ Auth::guard('admin')->user()->name ?? 'Admin' }}</div>
-                        <div style="font-size:0.68rem;color:#64748b;">Administrator</div>
+                        <div style="font-size:0.82rem;font-weight:700;color:#f8fafc;line-height:1.2;">{{ Auth::guard('admin')->user()->name ?? 'Administrator' }}</div>
+                        <div style="font-size:0.68rem;color:#64748b;font-weight:600;">Super Admin</div>
                     </div>
                 </div>
                 <form action="{{ route('admin.logout') }}" method="POST">
                     @csrf
-                    <button type="submit" title="Logout" style="background:none;border:none;color:#ef4444;font-size:1rem;cursor:pointer;">
-                        <i class="fa-solid fa-right-from-bracket"></i>
+                    <button type="submit" title="Logout from Admin Panel" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#ef4444;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ef4444';this.style.color='#fff';" onmouseout="this.style.background='rgba(239,68,68,0.12)';this.style.color='#ef4444';">
+                        <i class="fa-solid fa-power-off" style="font-size:0.82rem;"></i>
                     </button>
                 </form>
             </div>

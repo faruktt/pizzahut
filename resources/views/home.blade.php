@@ -964,39 +964,7 @@
         @endif
     </section>
 
-    <!-- 3. Our Top Deals (Matching Image 1) -->
-    <section class="section-wrap" id="cat-deals">
-        <div class="section-header-bar">
-            <h2 class="section-title-line">Our Top Deals</h2>
-        </div>
-
-        <div class="deals-grid">
-            @foreach($topDeals as $deal)
-                <a href="{{ route('deal.show', $deal->id) }}" class="deal-card" style="text-decoration:none; color:inherit;">
-                    <div class="deal-banner-header">
-                        <img src="{{ $deal->image && file_exists(public_path('uploads/' . $deal->image)) ? asset('uploads/' . $deal->image) : asset('images/pizza-hero.jpg') }}" alt="{{ $deal->name }}">
-                        <span class="deal-badge-overlay">Choose {{ $deal->combo_items_count ?: 2 }} Items</span>
-                    </div>
-
-                    <div class="deal-card-body">
-                        <h3 class="deal-card-title">{{ $deal->name }}</h3>
-                        <p class="deal-card-desc">{{ $deal->description }}</p>
-
-                        <div class="deal-card-footer">
-                            <div class="deal-price-val">
-                                <span>৳</span> {{ number_format($deal->base_price) }}
-                            </div>
-                            <span class="btn-red-add">
-                                Select Combo »
-                            </span>
-                        </div>
-                    </div>
-                </a>
-            @endforeach
-        </div>
-    </section>
-
-    <!-- 3b. Combo Meals Section -->
+    <!-- Combo Meals Section -->
     @if(isset($combos) && $combos->isNotEmpty())
     <section class="section-wrap" id="combos">
         <div class="section-header-bar">
@@ -1173,10 +1141,10 @@
 
                 <div class="addons-list" id="modalAddonsList">
                     @foreach($addons as $addon)
-                        <label class="addon-row" id="addon-label-{{ $addon->id }}" onclick="toggleAddon({{ $addon->id }}, {{ $addon->price }})">
+                        <label class="addon-row" id="addon-label-{{ $addon->id }}">
                             <div class="addon-label-side">
-                                <input type="checkbox" name="addons[]" value="{{ $addon->id }}" id="chk-addon-{{ $addon->id }}" style="accent-color: var(--brand-red);">
-                                <span>{{ $addon->icon ?? '🧀' }}</span>
+                                <input type="checkbox" name="addons[]" value="{{ $addon->id }}" id="chk-addon-{{ $addon->id }}" onchange="toggleAddon({{ $addon->id }})" style="accent-color: var(--brand-red); width:18px; height:18px; cursor:pointer;">
+                                <span><i class="fa-solid fa-cheese" style="color:var(--brand-red);"></i></span>
                                 <span>{{ $addon->name }}</span>
                             </div>
                             <span class="addon-price-tag">+৳{{ number_format($addon->price) }}</span>
@@ -1191,6 +1159,9 @@
 
 @push('scripts')
 <script>
+    const isCustomerLoggedIn = {{ Auth::guard('web')->check() ? 'true' : 'false' }};
+    const customerLoginUrl = "{{ route('login') }}";
+
     // Hero banner slider (admin-managed banners)
     let bannerIndex = 0;
     const bannerSlides = document.querySelectorAll('#heroBannerSlider .banner-slide');
@@ -1346,6 +1317,11 @@
 
     // Open Customize Modal (Image 2)
     function openCustomizeModal(productId) {
+        if (!isCustomerLoggedIn) {
+            window.location.href = customerLoginUrl;
+            return;
+        }
+
         const pData = pizzaDataMap[productId];
         currentPizza = pData;
 
@@ -1401,20 +1377,19 @@
     }
 
     // Toggle add-on checkbox
-    function toggleAddon(addonId, price) {
+    function toggleAddon(addonId) {
         const chk = document.getElementById('chk-addon-' + addonId);
         const row = document.getElementById('addon-label-' + addonId);
+        if (!chk || !row) return;
 
-        setTimeout(() => {
-            if (chk.checked) {
-                selectedAddonIds.add(addonId);
-                row.classList.add('checked');
-            } else {
-                selectedAddonIds.delete(addonId);
-                row.classList.remove('checked');
-            }
-            recalcModalTotal();
-        }, 10);
+        if (chk.checked) {
+            selectedAddonIds.add(addonId);
+            row.classList.add('checked');
+        } else {
+            selectedAddonIds.delete(addonId);
+            row.classList.remove('checked');
+        }
+        recalcModalTotal();
     }
 
     // Recalculate modal total price
@@ -1427,7 +1402,10 @@
         const singleItem = modalBasePrice + modalCrustExtra + addonsTotal;
         const total = singleItem * modalQuantity;
 
-        document.getElementById('modalTotalBtnPrice').innerText = '৳ ' + Math.round(total).toLocaleString();
+        const priceEl = document.getElementById('modalTotalBtnPrice');
+        if (priceEl) {
+            priceEl.innerText = '৳ ' + Math.round(total).toLocaleString();
+        }
     }
 
     // Adjust modal quantity
@@ -1438,16 +1416,24 @@
         recalcModalTotal();
     }
 
-    // Submit modal pizza to cart via AJAX
+    // Submit modal pizza to cart via AJAX (real-time)
     function submitModalToCart() {
+        if (!isCustomerLoggedIn) {
+            window.location.href = customerLoginUrl;
+            return;
+        }
+
         if (!currentPizza) return;
 
         const sizeSelect = document.getElementById('size-' + currentPizza.id);
         const crustSelect = document.getElementById('crust-' + currentPizza.id);
 
         const btn = document.getElementById('btnModalSubmit');
+        const priceEl = document.getElementById('modalTotalBtnPrice');
+        const currentPriceText = priceEl ? priceEl.innerText : '';
+
         btn.disabled = true;
-        btn.innerText = 'Adding...';
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Adding...</span>`;
 
         const sizeOption = sizeSelect ? sizeSelect.options[sizeSelect.selectedIndex] : null;
         const crustOption = crustSelect ? crustSelect.options[crustSelect.selectedIndex] : null;
@@ -1473,25 +1459,68 @@
             },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status === 401) {
+                showToast('কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন।', false);
+                setTimeout(() => {
+                    window.location.href = customerLoginUrl;
+                }, 800);
+                throw new Error('Unauthenticated');
+            }
+            return res.json();
+        })
         .then(data => {
             btn.disabled = false;
-            btn.innerHTML = `<span>Add</span> <span id="modalTotalBtnPrice">${document.getElementById('modalTotalBtnPrice').innerText}</span>`;
+            btn.innerHTML = `<span>Add</span> <span id="modalTotalBtnPrice">${currentPriceText}</span>`;
             
+            if (data.status === 'auth_required') {
+                showToast(data.message || 'কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন।', false);
+                setTimeout(() => {
+                    window.location.href = data.redirect || customerLoginUrl;
+                }, 800);
+                return;
+            }
+
             if (data.success) {
-                document.getElementById('headerCartCount').innerText = data.cartCount;
+                // Real-time update of floating cart badge
+                const cartCountEl = document.getElementById('headerCartCount');
+                if (cartCountEl) {
+                    cartCountEl.innerText = data.cartCount;
+                }
+
+                // Bounce animation on floating cart button
+                const floatCart = document.getElementById('floatingCartBtn');
+                if (floatCart) {
+                    floatCart.style.transition = 'all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    floatCart.style.transform = 'translateY(-50%) scale(1.3)';
+                    setTimeout(() => {
+                        floatCart.style.transform = 'translateY(-50%) scale(1)';
+                    }, 300);
+                }
+
                 closeCustomizeModal();
-                showToast('✓ ' + currentPizza.name + ' added to cart!');
+                showToast('✓ ' + (currentPizza ? currentPizza.name : 'Pizza') + ' added to cart!');
+            } else {
+                showToast(data.message || 'Could not add to cart.', false);
             }
         })
         .catch(err => {
             btn.disabled = false;
+            btn.innerHTML = `<span>Add</span> <span id="modalTotalBtnPrice">${currentPriceText}</span>`;
             console.error(err);
+            if (err.message !== 'Unauthenticated') {
+                showToast('Failed to add item to cart. Please try again.', false);
+            }
         });
     }
 
     // Quick add for deals
     function quickAddDeal(dealId, dealName, price) {
+        if (!isCustomerLoggedIn) {
+            window.location.href = customerLoginUrl;
+            return;
+        }
+
         const payload = {
             product_id: dealId,
             quantity: 1,
@@ -1507,12 +1536,31 @@
             },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
+        .then(res => {
+            if (res.status === 401) {
+                showToast('কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন।', false);
+                setTimeout(() => {
+                    window.location.href = customerLoginUrl;
+                }, 800);
+                throw new Error('Unauthenticated');
+            }
+            return res.json();
+        })
         .then(data => {
+            if (data.status === 'auth_required') {
+                showToast(data.message || 'কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন।', false);
+                setTimeout(() => {
+                    window.location.href = data.redirect || customerLoginUrl;
+                }, 800);
+                return;
+            }
             if (data.success) {
                 document.getElementById('headerCartCount').innerText = data.cartCount;
                 showToast('✓ ' + dealName + ' added to cart!');
             }
+        })
+        .catch(err => {
+            console.error(err);
         });
     }
 </script>

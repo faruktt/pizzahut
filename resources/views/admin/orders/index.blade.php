@@ -12,13 +12,13 @@
                 All Orders
             </a>
             <a href="{{ route('admin.orders.index') }}?type=delivery" class="btn-view-store" style="{{ request('type') == 'delivery' ? 'background: #0284c7; color: #fff;' : '' }}">
-                🛵 Delivery
+                <i class="fa-solid fa-motorcycle"></i> Delivery
             </a>
             <a href="{{ route('admin.orders.index') }}?type=takeaway" class="btn-view-store" style="{{ request('type') == 'takeaway' ? 'background: #0284c7; color: #fff;' : '' }}">
-                🛍️ Takeaway
+                <i class="fa-solid fa-bag-shopping"></i> Takeaway
             </a>
             <a href="{{ route('admin.orders.index') }}?type=dine_in" class="btn-view-store" style="{{ request('type') == 'dine_in' ? 'background: #0284c7; color: #fff;' : '' }}">
-                🍽️ Dine-in (Tables)
+                <i class="fa-solid fa-utensils"></i> Dine-in (Tables)
             </a>
         </div>
 
@@ -29,7 +29,7 @@
             </form>
 
             <a href="{{ route('admin.orders.create') }}" class="btn-quick-pos">
-                ➕ Create Walk-in Order
+                <i class="fa-solid fa-plus"></i> Create Walk-in Order
             </a>
         </div>
     </div>
@@ -62,11 +62,11 @@
                         <td>
                             <span style="font-weight: 700; font-size: 0.78rem; text-transform: uppercase;">
                                 @if($ord->order_type === 'delivery')
-                                    🛵 Delivery
+                                    <i class="fa-solid fa-motorcycle"></i> Delivery
                                 @elseif($ord->order_type === 'takeaway')
-                                    🛍️ Takeaway
+                                    <i class="fa-solid fa-bag-shopping"></i> Takeaway
                                 @else
-                                    🍽️ Dine-in
+                                    <i class="fa-solid fa-utensils"></i> Dine-in
                                 @endif
                             </span>
                         </td>
@@ -106,7 +106,7 @@
                         </td>
                         <td>
                             <a href="{{ route('admin.orders.show', $ord->id) }}" class="btn-view-store" style="padding: 4px 10px; font-size: 0.75rem;">
-                                View Details »
+                                View Details <i class="fa-solid fa-angle-right"></i>
                             </a>
                         </td>
                     </tr>

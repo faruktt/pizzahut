@@ -96,7 +96,6 @@
                             @endif
                         </div>
                         <input type="file" name="image" id="imageInput" accept="image/*" style="margin-top:8px;font-size:0.8rem;" onchange="previewImg(this)">
-                        <div class="form-hint">Leave blank to keep current image</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label"><i class="fa-solid fa-sort-numeric-up"></i> Sort Order</label>

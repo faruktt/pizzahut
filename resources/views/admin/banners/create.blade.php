@@ -19,14 +19,12 @@
                 <div class="form-group">
                     <label class="form-label">Banner Image *</label>
                     <input type="file" name="image" class="form-control" accept="image/*" required>
-                    <div class="form-hint">Full image is shown on the homepage without cropping. Saved to public/uploads/banners</div>
                     @error('image')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Sort Order</label>
                     <input type="number" name="sort_order" class="form-control" value="{{ old('sort_order', 0) }}" min="0">
-                    <div class="form-hint">Lower numbers appear first in the slider</div>
                 </div>
 
                 <div class="form-group">

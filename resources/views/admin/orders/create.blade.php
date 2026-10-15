@@ -7,8 +7,8 @@
 <div style="max-width: 900px; margin: 0 auto;">
     <div class="card-panel">
         <div class="card-panel-header">
-            <h3 class="card-panel-title">➕ New Order Entry</h3>
-            <a href="{{ route('admin.orders.index') }}" class="btn-view-store">« Back to Orders</a>
+            <h3 class="card-panel-title"><i class="fa-solid fa-circle-plus" style="color:var(--brand); margin-right:6px;"></i> New Order Entry</h3>
+            <a href="{{ route('admin.orders.index') }}" class="btn-view-store"><i class="fa-solid fa-arrow-left"></i> Back to Orders</a>
         </div>
 
         <form action="{{ route('admin.orders.store') }}" method="POST" class="card-panel-body" id="manualOrderForm">
@@ -19,9 +19,9 @@
                 <div>
                     <label style="display:block; font-size:0.8rem; font-weight:700; color:#334155; margin-bottom:6px;">Order Type *</label>
                     <select name="order_type" id="orderTypeSelect" class="form-control" style="width:100%; padding:9px;" onchange="toggleTableSelection(this.value)" required>
-                        <option value="takeaway">🛍️ Takeaway / Counter Walk-in</option>
-                        <option value="delivery">🛵 Home Delivery</option>
-                        <option value="dine_in">🍽️ Dine-in Table</option>
+                        <option value="takeaway">Takeaway / Counter Walk-in</option>
+                        <option value="delivery">Home Delivery</option>
+                        <option value="dine_in">Dine-in Table</option>
                     </select>
                 </div>
 
@@ -89,13 +89,13 @@
                         </div>
 
                         <div>
-                            <button type="button" onclick="this.closest('.item-input-row').remove()" style="background:none; border:none; color:#ef4444; font-size:1.1rem; cursor:pointer;">✕</button>
+                            <button type="button" onclick="this.closest('.item-input-row').remove()" style="background:none; border:none; color:#ef4444; font-size:1rem; cursor:pointer;" title="Remove Item"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                 </div>
 
                 <button type="button" onclick="addNewItemRow()" class="btn-view-store" style="margin-top: 10px;">
-                    ➕ Add Another Item
+                    <i class="fa-solid fa-plus" style="margin-right:5px;"></i> Add Another Item
                 </button>
             </div>
 
@@ -109,8 +109,8 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn-quick-pos" style="padding: 10px 24px; font-size: 0.95rem;">
-                    Submit Order ➔
+                <button type="submit" class="btn-quick-pos" style="padding: 10px 24px; font-size: 0.95rem; display:inline-flex; align-items:center; gap:8px;">
+                    <span>Submit Order</span> <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </form>
@@ -174,7 +174,7 @@
             </div>
 
             <div>
-                <button type="button" onclick="this.closest('.item-input-row').remove()" style="background:none; border:none; color:#ef4444; font-size:1.1rem; cursor:pointer;">✕</button>
+                <button type="button" onclick="this.closest('.item-input-row').remove()" style="background:none; border:none; color:#ef4444; font-size:1rem; cursor:pointer;" title="Remove Item"><i class="fa-solid fa-trash-can"></i></button>
             </div>
         `;
 

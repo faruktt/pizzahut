@@ -36,6 +36,11 @@ class DealController extends Controller
      */
     public function addComboToCart(Request $request, $id)
     {
+        if (!\Illuminate\Support\Facades\Auth::guard('web')->check()) {
+            session()->put('url.intended', route('deal.show', $id));
+            return redirect()->route('login')->with('error', 'কম্বো ডিল কার্টে যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন। (Please login to add deal combo to cart)');
+        }
+
         $deal = Product::with('comboProducts')->findOrFail($id);
         $comboSlotsCount = $deal->combo_items_count ?: 2;
 

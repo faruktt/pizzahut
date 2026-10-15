@@ -24,14 +24,12 @@
                         </div>
                     @endif
                     <input type="file" name="image" class="form-control" accept="image/*">
-                    <div class="form-hint">Leave blank to keep current image</div>
                     @error('image')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Sort Order</label>
                     <input type="number" name="sort_order" class="form-control" value="{{ old('sort_order', $banner->sort_order) }}" min="0">
-                    <div class="form-hint">Lower numbers appear first in the slider</div>
                 </div>
 
                 <div class="form-group">

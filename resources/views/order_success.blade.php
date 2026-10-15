@@ -135,7 +135,7 @@
 @section('content')
 <div class="container order-success-wrap">
     <div class="success-card">
-        <div class="success-badge-icon">✓</div>
+        <div class="success-badge-icon"><i class="fa-solid fa-check"></i></div>
         <h1 class="success-title">Order Received!</h1>
         <p style="color: #666; font-size: 0.95rem;">Thank you! Your pizza is now being prepared with authentic Italian passion.</p>
         <div class="order-num-pill">Order #{{ $order->order_number }}</div>
@@ -185,7 +185,7 @@
                             </div>
                             @if($item->combo_details)
                                 <div style="font-size: 0.76rem; color: #c8102e; font-weight: 700; margin-top: 2px;">
-                                    🍕 Combo: {{ $item->combo_details }}
+                                    <i class="fa-solid fa-pizza-slice" style="margin-right:4px;"></i> Combo: {{ $item->combo_details }}
                                 </div>
                             @endif
                             @if($item->addons->isNotEmpty())
@@ -205,6 +205,18 @@
                     <span>Subtotal:</span>
                     <strong>৳ {{ number_format($order->subtotal) }}</strong>
                 </div>
+                @if($order->coupon_discount > 0)
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 6px; color:#16a34a;">
+                        <span><i class="fa-solid fa-ticket" style="margin-right:4px;"></i> Coupon Discount ({{ $order->coupon_code }}):</span>
+                        <strong>-৳ {{ number_format($order->coupon_discount) }}</strong>
+                    </div>
+                @endif
+                @if($order->points_discount > 0)
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 6px; color:#16a34a;">
+                        <span><i class="fa-solid fa-coins" style="margin-right:4px; color:#f59e0b;"></i> Points Discount ({{ $order->points_used }} pts):</span>
+                        <strong>-৳ {{ number_format($order->points_discount) }}</strong>
+                    </div>
+                @endif
                 <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
                     <span>Delivery Fee:</span>
                     <strong>৳ {{ number_format($order->delivery_charge) }}</strong>
@@ -219,6 +231,13 @@
                 </div>
             </div>
 
+            @if($order->points_earned > 0)
+                <div style="margin-top:14px; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; padding:10px 14px; color:#065f46; font-size:0.85rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-coins" style="color:#10b981; font-size:1.1rem;"></i>
+                    <span>Congratulations! You earned +{{ $order->points_earned }} Reward Points on this order!</span>
+                </div>
+            @endif
+
             @if($order->customer_address)
                 <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; font-size: 0.82rem; color: #555;">
                     <strong>Delivery To:</strong> {{ $order->customer_name }} ({{ $order->customer_phone }})<br>
@@ -227,12 +246,12 @@
             @endif
         </div>
 
-        <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
-            <a href="{{ route('home') }}" class="btn-signin" style="padding: 12px 28px;">
-                Order More Pizzas
+        <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap:wrap;">
+            <a href="{{ route('home') }}" class="btn-signin" style="padding: 12px 28px; display:inline-flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-pizza-slice"></i> <span>Order More Pizzas</span>
             </a>
-            <button type="button" onclick="window.print()" style="background:#f1f2f4; border:1px solid #ddd; padding:12px 24px; border-radius:6px; font-weight:700; cursor:pointer;">
-                🖨️ Print Receipt
+            <button type="button" onclick="window.print()" style="background:#f1f2f4; border:1px solid #ddd; padding:12px 24px; border-radius:6px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-print"></i> <span>Print Receipt</span>
             </button>
         </div>
     </div>

@@ -41,7 +41,6 @@
                         </div>
                     @endif
                     <input type="file" name="image" class="form-control" accept="image/*">
-                    <div class="form-hint">Leave blank to keep current image</div>
                 </div>
 
                 <div class="form-group">

@@ -79,7 +79,6 @@
                         <div class="form-group">
                             <label class="form-label"><i class="fa-solid fa-check-square"></i> Max Items Customer Selects</label>
                             <input type="number" name="max_select" class="form-control" value="{{ old('max_select', 2) }}" min="1" max="10">
-                            <div class="form-hint">e.g. 2 means customer picks any 2 from the products below</div>
                         </div>
                     </div>
                 </div>

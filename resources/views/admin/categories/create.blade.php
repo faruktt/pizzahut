@@ -26,7 +26,6 @@
                     <div class="form-group">
                         <label class="form-label">FA Icon class</label>
                         <input type="text" name="icon" class="form-control" value="{{ old('icon') }}" placeholder="fa-solid fa-pizza-slice">
-                        <div class="form-hint">Font Awesome class name</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Sort Order</label>
@@ -37,7 +36,6 @@
                 <div class="form-group">
                     <label class="form-label">Image</label>
                     <input type="file" name="image" class="form-control" accept="image/*">
-                    <div class="form-hint">Saved to public/uploads</div>
                     @error('image')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
 

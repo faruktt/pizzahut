@@ -163,7 +163,7 @@
             <div>
                 <!-- 1. Order Type Selection -->
                 <div class="checkout-card">
-                    <h3 class="checkout-heading"><span>🛵</span> 1. Select Delivery or Takeaway</h3>
+                    <h3 class="checkout-heading"><span><i class="fa-solid fa-motorcycle" style="color:var(--brand-red);"></i></span> 1. Select Delivery or Takeaway</h3>
                     
                     <div class="type-select-row">
                         <label class="type-radio-box active" id="labelDelivery">
@@ -179,7 +179,7 @@
 
                 <!-- 2. Customer Contact & Address -->
                 <div class="checkout-card">
-                    <h3 class="checkout-heading"><span>📍</span> 2. Contact & Address Details</h3>
+                    <h3 class="checkout-heading"><span><i class="fa-solid fa-location-dot" style="color:var(--brand-red);"></i></span> 2. Contact & Address Details</h3>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div class="form-group">
@@ -210,24 +210,24 @@
 
                 <!-- 3. Payment Method -->
                 <div class="checkout-card">
-                    <h3 class="checkout-heading"><span>💳</span> 3. Payment Method</h3>
+                    <h3 class="checkout-heading"><span><i class="fa-solid fa-credit-card" style="color:var(--brand-red);"></i></span> 3. Payment Method</h3>
 
                     <div class="payment-methods-grid">
                         <label class="payment-method-card active" id="payCash">
                             <input type="radio" name="payment_method" value="cash" checked onchange="handlePaymentChange('cash')" style="display:none;">
-                            <div style="font-size: 1.5rem; margin-bottom: 4px;">💵</div>
+                            <div style="font-size: 1.5rem; margin-bottom: 6px; color:#16a34a;"><i class="fa-solid fa-money-bill-wave"></i></div>
                             <span>Cash on Delivery</span>
                         </label>
 
                         <label class="payment-method-card" id="payBkash">
                             <input type="radio" name="payment_method" value="bkash" onchange="handlePaymentChange('bkash')" style="display:none;">
-                            <div style="font-size: 1.5rem; margin-bottom: 4px;">📱</div>
+                            <div style="font-size: 1.5rem; margin-bottom: 6px; color:#e11d48;"><i class="fa-solid fa-mobile-screen-button"></i></div>
                             <span>bKash / Nagad</span>
                         </label>
 
                         <label class="payment-method-card" id="payCard">
                             <input type="radio" name="payment_method" value="card" onchange="handlePaymentChange('card')" style="display:none;">
-                            <div style="font-size: 1.5rem; margin-bottom: 4px;">💳</div>
+                            <div style="font-size: 1.5rem; margin-bottom: 6px; color:#2563eb;"><i class="fa-solid fa-credit-card"></i></div>
                             <span>Credit / Debit Card</span>
                         </label>
                     </div>
@@ -258,6 +258,18 @@
                             <span>Subtotal</span>
                             <strong>৳ {{ number_format($subtotal) }}</strong>
                         </div>
+                        @if(!empty($couponDiscount) && $couponDiscount > 0)
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px; color:#16a34a;">
+                                <span><i class="fa-solid fa-ticket" style="margin-right:4px;"></i> Coupon ({{ $couponCode }})</span>
+                                <strong>-৳ {{ number_format($couponDiscount) }}</strong>
+                            </div>
+                        @endif
+                        @if(!empty($pointsDiscount) && $pointsDiscount > 0)
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px; color:#16a34a;">
+                                <span><i class="fa-solid fa-coins" style="margin-right:4px; color:#f59e0b;"></i> Points Redeemed ({{ $pointsUsed }} pts)</span>
+                                <strong>-৳ {{ number_format($pointsDiscount) }}</strong>
+                            </div>
+                        @endif
                         <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
                             <span>Delivery Fee</span>
                             <strong id="displayDeliveryFee">৳ {{ number_format($deliveryCharge) }}</strong>
@@ -272,12 +284,19 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-place-order">
-                        Confirm & Place Order ➔
+                    <div style="margin-top:14px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px 12px; font-size:0.8rem; color:#92400e; display:flex; align-items:center; gap:8px;">
+                        <i class="fa-solid fa-gift" style="font-size:1rem; color:var(--brand-red);"></i>
+                        <span>You will earn <strong>{{ $pointsEarned ?? 0 }}</strong> reward points on this order!</span>
+                    </div>
+
+                    <button type="submit" class="btn-place-order" style="display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                        <span>Confirm & Place Order</span> <i class="fa-solid fa-arrow-right"></i>
                     </button>
 
-                    <div style="margin-top: 12px; font-size: 0.75rem; color: #777; text-align: center;">
-                        🔒 Secure Checkout • Hot & Fresh Pizza Guarantee
+                    <div style="margin-top: 12px; font-size: 0.75rem; color: #777; text-align: center; display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap;">
+                        <span><i class="fa-solid fa-shield-halved" style="color:#16a34a;"></i> Secure Checkout</span>
+                        <span>•</span>
+                        <span><i class="fa-solid fa-fire" style="color:#c8102e;"></i> Hot & Fresh Pizza Guarantee</span>
                     </div>
                 </div>
             </div>

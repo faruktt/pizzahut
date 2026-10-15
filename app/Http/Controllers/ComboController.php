@@ -50,6 +50,11 @@ class ComboController extends Controller
      */
     public function addToCart(Request $request, $id)
     {
+        if (!\Illuminate\Support\Facades\Auth::guard('web')->check()) {
+            session()->put('url.intended', route('combo.show', $id));
+            return redirect()->route('login')->with('error', 'কম্বো কার্টে যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন। (Please login to add combo to cart)');
+        }
+
         $combo = Combo::findOrFail($id);
 
         $request->validate([

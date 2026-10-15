@@ -12,7 +12,69 @@ class AdminSettingController extends Controller
     {
         $logo = Setting::getValue('site_logo');
         $favicon = Setting::getValue('site_favicon');
-        return view('admin.settings.index', compact('logo', 'favicon'));
+        $pointRatePoints = (float) Setting::getValue('point_rate_points', 1);
+        $pointRateTaka   = (float) Setting::getValue('point_rate_taka', 1);
+        $minRedeemPoints = (int) Setting::getValue('min_redeem_points', 1);
+        $siteAddress     = Setting::getValue('site_address', 'House 14, Road 11, Block D, Gulshan-2, Dhaka');
+        $sitePhone       = Setting::getValue('site_phone', '+880 1711-223344');
+        $siteEmail       = Setting::getValue('site_email', 'contact@italianpizza.com');
+        $openingHours    = Setting::getValue('opening_hours', 'Daily: 11:00 AM – 11:30 PM');
+        $googleMapEmbed  = Setting::getValue('google_map_embed', '');
+
+        return view('admin.settings.index', compact(
+            'logo', 'favicon', 'pointRatePoints', 'pointRateTaka', 'minRedeemPoints',
+            'siteAddress', 'sitePhone', 'siteEmail', 'openingHours', 'googleMapEmbed'
+        ));
+    }
+
+    public function updateGeneral(Request $request)
+    {
+        $request->validate([
+            'site_address'     => 'nullable|string|max:500',
+            'site_phone'       => 'nullable|string|max:100',
+            'site_email'       => 'nullable|string|max:150',
+            'opening_hours'    => 'nullable|string|max:200',
+            'google_map_embed' => 'nullable|string',
+        ]);
+
+        Setting::setValue('site_address', $request->input('site_address', ''));
+        Setting::setValue('site_phone', $request->input('site_phone', ''));
+        Setting::setValue('site_email', $request->input('site_email', ''));
+        Setting::setValue('opening_hours', $request->input('opening_hours', ''));
+        Setting::setValue('google_map_embed', $request->input('google_map_embed', ''));
+
+        return redirect()->route('admin.settings.index')->with('success', 'Address, contact information & Google map updated successfully!');
+    }
+
+    public function pointsIndex()
+    {
+        $pointRatePoints = (float) Setting::getValue('point_rate_points', 1);
+        $pointRateTaka   = (float) Setting::getValue('point_rate_taka', 1);
+        $minRedeemPoints = (int) Setting::getValue('min_redeem_points', 1);
+
+        $totalCustomerPoints = (int) \App\Models\User::sum('reward_points');
+        $totalRedeemedPoints = (int) \App\Models\Order::sum('points_used');
+        $totalDiscountGiven  = (float) \App\Models\Order::sum('points_discount');
+
+        return view('admin.settings.points', compact(
+            'pointRatePoints', 'pointRateTaka', 'minRedeemPoints',
+            'totalCustomerPoints', 'totalRedeemedPoints', 'totalDiscountGiven'
+        ));
+    }
+
+    public function updatePoints(Request $request)
+    {
+        $request->validate([
+            'point_rate_points' => 'required|numeric|min:1',
+            'point_rate_taka'   => 'required|numeric|min:0.01',
+            'min_redeem_points' => 'nullable|integer|min:1',
+        ]);
+
+        Setting::setValue('point_rate_points', $request->point_rate_points);
+        Setting::setValue('point_rate_taka', $request->point_rate_taka);
+        Setting::setValue('min_redeem_points', $request->input('min_redeem_points', 1));
+
+        return redirect()->back()->with('success', 'Reward points conversion settings updated successfully!');
     }
 
     public function updateLogo(Request $request)

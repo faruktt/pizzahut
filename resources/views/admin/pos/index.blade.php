@@ -7,31 +7,66 @@
 <style>
     .pos-container {
         display: grid;
-        grid-template-columns: 280px 1fr 360px;
-        gap: 20px;
-        height: calc(100vh - 120px);
-        min-height: 600px;
+        grid-template-columns: 280px 1fr 370px;
+        gap: 16px;
+        height: calc(100vh - 110px);
+        min-height: 620px;
     }
 
     /* Column 1: Tables List */
     .pos-col-tables {
         background: #ffffff;
         border: 1px solid var(--border-light);
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
 
     .pos-col-header {
-        padding: 16px;
+        padding: 14px 16px;
         border-bottom: 1px solid var(--border-light);
         font-weight: 800;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         color: var(--text-main);
         display: flex;
         align-items: center;
         justify-content: space-between;
+        background: #ffffff;
+    }
+
+    .table-filter-bar {
+        display: flex;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #f8fafc;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .table-filter-btn {
+        flex: 1;
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        font-size: 0.74rem;
+        font-weight: 700;
+        color: #64748b;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.15s ease;
+    }
+
+    .table-filter-btn:hover {
+        border-color: #cbd5e1;
+        color: #1e293b;
+    }
+
+    .table-filter-btn.active {
+        background: #0f172a;
+        color: #ffffff;
+        border-color: #0f172a;
     }
 
     .pos-tables-scroll {
@@ -44,13 +79,13 @@
     }
 
     .pos-table-btn {
-        border: 2px solid var(--border-light);
+        border: 1.5px solid #e2e8f0;
         border-radius: 10px;
-        padding: 12px 14px;
+        padding: 10px 14px;
         background: #ffffff;
         cursor: pointer;
         text-align: left;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -58,6 +93,8 @@
 
     .pos-table-btn:hover {
         border-color: #94a3b8;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.04);
     }
 
     .pos-table-btn.available {
@@ -66,29 +103,117 @@
 
     .pos-table-btn.occupied {
         border-left: 5px solid #ef4444;
-        background: #fef2f2;
+        background: #fff8f8;
     }
 
     .pos-table-btn.selected {
-        border-color: #0284c7;
-        background: #f0f9ff;
-        box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+        border-color: #0284c7 !important;
+        background: #f0f9ff !important;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .pos-table-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: inline-block;
+    }
+
+    .badge-available {
+        background: #ecfdf5;
+        color: #059669;
+    }
+
+    .badge-occupied {
+        background: #fef2f2;
+        color: #dc2626;
     }
 
     /* Column 2: Menu Catalog */
     .pos-col-menu {
         background: #ffffff;
         border: 1px solid var(--border-light);
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+
+    .pos-menu-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .pos-search-wrapper {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .pos-search-icon {
+        position: absolute;
+        left: 12px;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+
+    .pos-search-input {
+        width: 100%;
+        height: 38px;
+        padding: 6px 32px 6px 34px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        background: #f8fafc;
+        transition: all 0.2s;
+        font-family: inherit;
+        color: var(--text-main);
+    }
+
+    .pos-search-input:focus {
+        outline: none;
+        background: #ffffff;
+        border-color: var(--admin-primary);
+        box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.1);
+    }
+
+    .pos-search-clear {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        color: #94a3b8;
+        font-size: 1.1rem;
+        cursor: pointer;
+        padding: 2px 6px;
+        line-height: 1;
+    }
+
+    .pos-menu-count {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 5px 12px;
+        border-radius: 12px;
+        white-space: nowrap;
     }
 
     .pos-category-tabs {
         display: flex;
         gap: 8px;
-        padding: 12px 16px;
+        padding: 10px 14px;
         border-bottom: 1px solid var(--border-light);
         overflow-x: auto;
         background: #f8fafc;
@@ -97,84 +222,166 @@
     .cat-tab-btn {
         padding: 6px 14px;
         border-radius: 20px;
-        border: 1px solid var(--border-light);
+        border: 1px solid #e2e8f0;
         background: #ffffff;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 700;
-        color: var(--text-sub);
+        color: #64748b;
         cursor: pointer;
         white-space: nowrap;
-        transition: all 0.2s;
+        transition: all 0.15s ease;
+    }
+
+    .cat-tab-btn:hover {
+        border-color: var(--admin-primary);
+        color: var(--admin-primary);
+        background: #fff5f5;
     }
 
     .cat-tab-btn.active {
         background: var(--admin-primary);
         color: #ffffff;
         border-color: var(--admin-primary);
+        box-shadow: 0 2px 6px rgba(200, 16, 46, 0.25);
     }
 
+    /* Products Grid: 4 cards per row */
     .pos-products-grid {
         flex: 1;
         overflow-y: auto;
-        padding: 16px;
+        padding: 12px;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 14px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        align-content: start;
     }
 
     .pos-product-card {
-        border: 1px solid var(--border-light);
-        border-radius: 10px;
-        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
         background: #ffffff;
         cursor: pointer;
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        transition: all 0.2s;
+        overflow: hidden;
+        user-select: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
     }
 
     .pos-product-card:hover {
         border-color: var(--admin-primary);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(200, 16, 46, 0.12);
     }
 
-    .pos-prod-thumb {
-        height: 90px;
-        border-radius: 6px;
+    .pos-product-card:active {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(200, 16, 46, 0.1);
+    }
+
+    /* Top: Large Image Area */
+    .pos-prod-img-box {
+        width: 100%;
+        height: 105px;
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
         overflow: hidden;
-        margin-bottom: 8px;
+        position: relative;
     }
 
-    .pos-prod-thumb img {
+    .pos-prod-img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
+        transition: transform 0.25s ease;
+        filter: drop-shadow(0 3px 6px rgba(0,0,0,0.08));
+    }
+
+    .pos-product-card:hover .pos-prod-img {
+        transform: scale(1.08);
+    }
+
+    .pos-thumb-fallback {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fee2e2, #fecaca);
+        color: var(--admin-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        box-shadow: 0 3px 8px rgba(200, 16, 46, 0.15);
+    }
+
+    /* Bottom: Name & Price Area */
+    .pos-prod-body {
+        padding: 10px 10px 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        flex: 1;
+        background: #ffffff;
+        border-top: 1px solid #f1f5f9;
     }
 
     .pos-prod-name {
         font-size: 0.85rem;
         font-weight: 800;
-        color: var(--text-main);
+        color: #0f172a;
         line-height: 1.25;
-        margin-bottom: 6px;
+        margin-bottom: 5px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .pos-prod-price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 2px;
     }
 
     .pos-prod-price {
-        font-size: 0.9rem;
+        font-size: 0.86rem;
         font-weight: 800;
         color: var(--admin-primary);
+        letter-spacing: -0.2px;
+    }
+
+    .pos-card-add-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        color: #64748b;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        transition: all 0.2s ease;
+    }
+
+    .pos-product-card:hover .pos-card-add-icon {
+        background: var(--admin-primary);
+        color: #ffffff;
+        transform: scale(1.1);
     }
 
     /* Column 3: Table Order / Bill */
     .pos-col-order {
         background: #ffffff;
         border: 1px solid var(--border-light);
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
 
     .pos-order-items-scroll {
@@ -188,13 +395,20 @@
 
     .pos-order-item-row {
         background: #f8fafc;
-        border: 1px solid var(--border-light);
+        border: 1px solid #e2e8f0;
         border-radius: 8px;
         padding: 10px 12px;
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         font-size: 0.85rem;
+        transition: all 0.15s ease;
+    }
+
+    .pos-order-item-row:hover {
+        background: #ffffff;
+        border-color: #cbd5e1;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
     }
 
     .pos-order-footer {
@@ -206,7 +420,7 @@
     .pos-bill-line {
         display: flex;
         justify-content: space-between;
-        font-size: 0.85rem;
+        font-size: 0.86rem;
         margin-bottom: 6px;
         color: var(--text-sub);
     }
@@ -224,36 +438,42 @@
 
     .btn-pos-pay {
         width: 100%;
-        background: #10b981;
+        background: linear-gradient(135deg, #10b981, #059669);
         color: #fff;
         border: none;
-        border-radius: 8px;
-        padding: 12px;
+        border-radius: 10px;
+        padding: 13px;
         font-size: 0.95rem;
         font-weight: 800;
         cursor: pointer;
         margin-top: 12px;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-        transition: background 0.2s;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
-    .btn-pos-pay:hover {
-        background: #059669;
+    .btn-pos-pay:hover:not(:disabled) {
+        background: linear-gradient(135deg, #059669, #047857);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.38);
     }
 
     /* Modal for Quick Customizing Pizza onto Table */
     .pos-modal {
         position: fixed;
         inset: 0;
-        background: rgba(0,0,0,0.5);
-        backdrop-filter: blur(3px);
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.2s;
+        transition: opacity 0.2s ease;
     }
 
     .pos-modal.open {
@@ -263,16 +483,44 @@
 
     .pos-modal-card {
         background: #ffffff;
-        border-radius: 12px;
+        border-radius: 14px;
         width: 100%;
         max-width: 520px;
         padding: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+        transform: translateY(10px);
+        transition: transform 0.2s ease;
     }
 
-    @media (max-width: 1100px) {
+    .pos-modal.open .pos-modal-card {
+        transform: translateY(0);
+    }
+
+    .btn-quick-pos {
+        background: linear-gradient(135deg, var(--admin-primary), #a50b24);
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 11px 22px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(200, 16, 46, 0.25);
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-quick-pos:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(200, 16, 46, 0.35);
+    }
+
+    @media (max-width: 1200px) {
         .pos-container {
-            grid-template-columns: 220px 1fr 320px;
+            grid-template-columns: 240px 1fr 340px;
+            gap: 12px;
         }
     }
 </style>
@@ -284,8 +532,14 @@
     <!-- 1. RESTAURANT TABLES SELECTOR -->
     <div class="pos-col-tables">
         <div class="pos-col-header">
-            <span>🍽️ Dining Tables</span>
+            <span><i class="fa-solid fa-utensils"></i> Dining Tables</span>
             <span style="font-size:0.75rem; color:#64748b;">{{ $tables->count() }} Total</span>
+        </div>
+
+        <div class="table-filter-bar">
+            <button type="button" class="table-filter-btn active" onclick="filterTables('all', this)">All ({{ $tables->count() }})</button>
+            <button type="button" class="table-filter-btn" onclick="filterTables('available', this)">Available ({{ $tables->where('status', 'available')->count() }})</button>
+            <button type="button" class="table-filter-btn" onclick="filterTables('occupied', this)">Occupied ({{ $tables->where('status', 'occupied')->count() }})</button>
         </div>
 
         <div class="pos-tables-scroll" id="tablesList">
@@ -299,7 +553,7 @@
                         <div style="font-size:0.72rem; color:#64748b;">Cap: {{ $tbl->capacity }} guests</div>
                     </div>
                     <div style="text-align: right;">
-                        <span class="badge badge-{{ $tbl->status }}">{{ ucfirst($tbl->status) }}</span>
+                        <span class="pos-table-badge badge-{{ $tbl->status }}">{{ ucfirst($tbl->status) }}</span>
                         @if($tbl->status === 'occupied' && $tbl->activeOrder)
                             <div style="font-size:0.75rem; font-weight:800; color:var(--admin-primary); margin-top:3px;">
                                 ৳{{ number_format($tbl->activeOrder->total_amount) }}
@@ -313,6 +567,15 @@
 
     <!-- 2. MENU ITEM PICKER -->
     <div class="pos-col-menu">
+        <div class="pos-menu-topbar">
+            <div class="pos-search-wrapper">
+                <i class="fa-solid fa-magnifying-glass pos-search-icon"></i>
+                <input type="text" id="posSearchInput" class="pos-search-input" placeholder="Search menu items..." oninput="filterPosProducts()">
+                <button type="button" id="posSearchClear" class="pos-search-clear" onclick="clearPosSearch()" style="display:none;">&times;</button>
+            </div>
+            <span class="pos-menu-count" id="posProductCount">{{ $products->count() }} Items</span>
+        </div>
+
         <!-- Category Tabs -->
         <div class="pos-category-tabs">
             <button type="button" class="cat-tab-btn active" onclick="filterCategory('all', this)">All Items</button>
@@ -323,16 +586,24 @@
             @endforeach
         </div>
 
-        <!-- Products Grid -->
+        <!-- Products Grid: 4 cards per row, large image on top, name and price below -->
         <div class="pos-products-grid" id="posProductsGrid">
             @foreach($products as $prod)
-                <div class="pos-product-card" data-category="{{ $prod->category_id }}" onclick="openPosItemModal({{ $prod->id }})">
-                    <div class="pos-prod-thumb">
-                        <img src="{{ asset('images/pizza-hero.jpg') }}" alt="{{ $prod->name }}">
+                <div class="pos-product-card" data-category="{{ $prod->category_id }}" data-name="{{ strtolower($prod->name) }}" onclick="openPosItemModal({{ $prod->id }})">
+                    <div class="pos-prod-img-box">
+                        @if($prod->image)
+                            <img src="{{ asset('uploads/' . $prod->image) }}" alt="{{ $prod->name }}" class="pos-prod-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="pos-thumb-fallback" style="display:none;"><i class="fa-solid fa-pizza-slice"></i></div>
+                        @else
+                            <div class="pos-thumb-fallback"><i class="fa-solid fa-pizza-slice"></i></div>
+                        @endif
                     </div>
-                    <div>
-                        <div class="pos-prod-name">{{ $prod->name }}</div>
-                        <div class="pos-prod-price">৳ {{ number_format($prod->base_price) }}</div>
+                    <div class="pos-prod-body">
+                        <div class="pos-prod-name" title="{{ $prod->name }}">{{ $prod->name }}</div>
+                        <div class="pos-prod-price-row">
+                            <span class="pos-prod-price">৳ {{ number_format($prod->base_price) }}</span>
+                            <span class="pos-card-add-icon" title="Add to table"><i class="fa-solid fa-plus"></i></span>
+                        </div>
                     </div>
                 </div>
             @endforeach
@@ -346,7 +617,7 @@
                 <span id="displaySelectedTableName" style="font-weight:800;">Select a Table</span>
                 <div id="displayTableStatus" style="font-size:0.75rem; color:#64748b; font-weight:normal;">Click a table on the left</div>
             </div>
-            <button type="button" onclick="printReceipt()" style="background:none; border:none; cursor:pointer; font-size:1.1rem;" title="Print Receipt">🖨️</button>
+            <button type="button" onclick="printReceipt()" style="background:none; border:none; cursor:pointer; font-size:1.1rem; color:#64748b;" title="Print Receipt"><i class="fa-solid fa-print"></i></button>
         </div>
 
         <!-- Order Items on Table -->
@@ -372,7 +643,7 @@
             </div>
 
             <button type="button" class="btn-pos-pay" id="btnPosComplete" onclick="completeCurrentTableOrder()" disabled style="opacity: 0.6; cursor: not-allowed;">
-                ✓ Complete Payment & Free Table
+                <i class="fa-solid fa-circle-check"></i> Complete Payment & Free Table
             </button>
         </div>
     </div>
@@ -384,7 +655,7 @@
     <div class="pos-modal-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <h3 id="posModalProdName" style="font-size:1.1rem; font-weight:800;">Product Name</h3>
-            <button type="button" onclick="closePosModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            <button type="button" onclick="closePosModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <!-- Size Selection -->
@@ -407,7 +678,11 @@
                     <label style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px; cursor:pointer;">
                         <span>
                             <input type="checkbox" value="{{ $ad->id }}" data-price="{{ $ad->price }}" class="pos-chk-addon" onchange="recalcPosModalPrice()">
-                            {{ $ad->icon }} {{ $ad->name }}
+                            @if(Str::startsWith($ad->icon, 'fa-') || Str::contains($ad->icon, 'fa-'))
+                                <i class="{{ $ad->icon }}"></i>
+                            @else
+                                <i class="fa-solid fa-cheese"></i>
+                            @endif {{ $ad->name }}
                         </span>
                         <strong>+৳{{ number_format($ad->price) }}</strong>
                     </label>
@@ -420,7 +695,7 @@
                 ৳ 0
             </div>
             <button type="button" class="btn-quick-pos" onclick="submitItemToTable()">
-                Add to Table Order ➔
+                Add to Table Order <i class="fa-solid fa-arrow-right"></i>
             </button>
         </div>
     </div>
@@ -434,17 +709,67 @@
     let currentModalProd = null;
     let modalUnitPrice = 0;
     let modalCrustExtra = 0;
+    let currentCategoryId = 'all';
 
     // Filter categories in POS
     function filterCategory(catId, btn) {
+        currentCategoryId = catId;
         document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        applyProductFilters();
+    }
+
+    // Filter products by live search query
+    function filterPosProducts() {
+        const query = (document.getElementById('posSearchInput')?.value || '').trim();
+        const clearBtn = document.getElementById('posSearchClear');
+        if (clearBtn) {
+            clearBtn.style.display = query ? 'block' : 'none';
+        }
+        applyProductFilters();
+    }
+
+    function clearPosSearch() {
+        const searchInput = document.getElementById('posSearchInput');
+        if (searchInput) searchInput.value = '';
+        const clearBtn = document.getElementById('posSearchClear');
+        if (clearBtn) clearBtn.style.display = 'none';
+        applyProductFilters();
+    }
+
+    function applyProductFilters() {
+        const query = (document.getElementById('posSearchInput')?.value || '').toLowerCase().trim();
+        let visibleCount = 0;
 
         document.querySelectorAll('.pos-product-card').forEach(card => {
-            if (catId === 'all' || card.dataset.category === catId) {
+            const matchesCat = (currentCategoryId === 'all' || card.dataset.category === currentCategoryId);
+            const name = (card.dataset.name || card.querySelector('.pos-prod-name')?.innerText || '').toLowerCase();
+            const matchesSearch = !query || name.includes(query);
+
+            if (matchesCat && matchesSearch) {
                 card.style.display = 'flex';
+                visibleCount++;
             } else {
                 card.style.display = 'none';
+            }
+        });
+
+        const countElem = document.getElementById('posProductCount');
+        if (countElem) {
+            countElem.innerText = visibleCount + ' Items';
+        }
+    }
+
+    // Filter Tables by status
+    function filterTables(status, btn) {
+        document.querySelectorAll('.table-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.pos-table-btn').forEach(tbl => {
+            if (status === 'all' || tbl.classList.contains(status)) {
+                tbl.style.display = 'flex';
+            } else {
+                tbl.style.display = 'none';
             }
         });
     }

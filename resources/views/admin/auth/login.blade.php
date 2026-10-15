@@ -3,124 +3,243 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Login | Italian Pizza</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Admin Portal Login | Pizza Hut</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #f1f5f9;
+            background: #f8fafc;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 24px;
         }
         .login-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 40px 36px;
+            border-radius: 20px;
+            padding: 40px 34px;
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 410px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             text-align: center;
         }
         .logo-box {
-            width: 48px;
-            height: 48px;
+            margin-bottom: 24px;
+        }
+        .site-logo-img {
+            max-height: 48px;
+            width: auto;
+            max-width: 220px;
+            object-fit: contain;
+        }
+        .brand-fallback {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-fallback-icon {
+            width: 44px;
+            height: 44px;
             background: #c8102e;
             color: #fff;
             border-radius: 12px;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.3rem;
+        }
+        .brand-fallback-text {
+            text-align: left;
+            line-height: 1.1;
+        }
+        .brand-fallback-text strong {
+            display: block;
             font-size: 1.5rem;
+            font-weight: 900;
+            color: #c8102e;
+        }
+        .brand-fallback-text span {
+            display: block;
+            font-size: 0.68rem;
+            color: #64748b;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+        .input-group-clean {
+            position: relative;
             margin-bottom: 16px;
-            box-shadow: 0 4px 12px rgba(200, 16, 46, 0.25);
         }
-        h2 { font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-bottom: 6px; }
-        p { font-size: 0.85rem; color: #64748b; margin-bottom: 24px; }
-        .form-group { text-align: left; margin-bottom: 16px; }
-        label { display: block; font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 6px; }
-        input[type="email"], input[type="password"] {
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.95rem;
+            pointer-events: none;
+        }
+        .input-field {
             width: 100%;
-            padding: 11px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            padding: 13px 16px 13px 42px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            color: #0f172a;
+            font-family: inherit;
             outline: none;
-            transition: border-color 0.2s;
+            transition: all 0.2s ease;
         }
-        input:focus { border-color: #c8102e; }
+        .input-field:focus {
+            background: #fff;
+            border-color: #c8102e;
+            box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.1);
+        }
+        .input-field:focus ~ .input-icon {
+            color: #c8102e;
+        }
+        .pwd-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 1rem;
+        }
+        .pwd-toggle:hover {
+            color: #475569;
+        }
         .btn-submit {
             width: 100%;
             background: #c8102e;
             color: #fff;
             border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 0.95rem;
+            border-radius: 12px;
+            padding: 13px;
+            font-size: 0.96rem;
             font-weight: 700;
             cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             margin-top: 8px;
-            box-shadow: 0 4px 12px rgba(200, 16, 46, 0.25);
-            transition: background 0.2s;
         }
-        .btn-submit:hover { background: #a50b24; }
+        .btn-submit:hover {
+            background: #b00d28;
+            transform: translateY(-1px);
+        }
         .alert-error {
             background: #fee2e2;
-            border: 1px solid #f87171;
+            border: 1px solid #fecaca;
             color: #b91c1c;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.84rem;
+            margin-bottom: 20px;
             text-align: left;
-        }
-        .hint-box {
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid #f1f5f9;
-            font-size: 0.78rem;
-            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
+    @php
+        $siteLogo = \App\Models\Setting::getValue('site_logo');
+    @endphp
+
     <div class="login-card">
-        <div class="logo-box">🍕</div>
-        <h2>Admin & POS Portal</h2>
-        <p>Login to manage restaurant tables, orders & products</p>
+        <!-- Logo -->
+        <div class="logo-box">
+            @if(!empty($siteLogo) && file_exists(public_path('uploads/' . $siteLogo)))
+                <img src="{{ asset('uploads/' . $siteLogo) }}" alt="Logo" class="site-logo-img">
+            @else
+                <div class="brand-fallback">
+                    <span class="brand-fallback-icon"><i class="fa-solid fa-pizza-slice"></i></span>
+                    <div class="brand-fallback-text">
+                        <strong>Pizza Hut</strong>
+                        <span>ADMIN PORTAL</span>
+                    </div>
+                </div>
+            @endif
+        </div>
 
         @if(isset($errors) && $errors->any())
             <div class="alert-error">
-                {{ $errors->first() }}
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>{{ $errors->first() }}</span>
             </div>
         @endif
 
-        <form action="{{ route('admin.login') }}" method="POST">
+        <form action="{{ route('admin.login') }}" method="POST" style="text-align: left;">
             @csrf
-            <div class="form-group">
-                <label>Admin Email Address</label>
-                <input type="email" name="email" value="{{ old('email', 'admin@italianpizza.com') }}" required>
+
+            <!-- Email Field -->
+            <div class="input-group-clean">
+                <input 
+                    type="email" 
+                    name="email" 
+                    class="input-field" 
+                    placeholder="Admin Email Address" 
+                    value="{{ old('email') }}" 
+                    required 
+                    autofocus
+                >
+                <i class="fa-regular fa-envelope input-icon"></i>
             </div>
 
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" value="password123" required>
+            <!-- Password Field -->
+            <div class="input-group-clean">
+                <input 
+                    type="password" 
+                    name="password" 
+                    id="adminPassword" 
+                    class="input-field" 
+                    placeholder="Password" 
+                    required
+                >
+                <i class="fa-solid fa-lock input-icon"></i>
+                <button type="button" class="pwd-toggle" id="toggleAdminPwd" title="Toggle password visibility">
+                    <i class="fa-regular fa-eye" id="toggleAdminIcon"></i>
+                </button>
             </div>
 
             <button type="submit" class="btn-submit">
-                Access Admin Dashboard ➔
+                <span>Access Dashboard</span>
+                <i class="fa-solid fa-arrow-right"></i>
             </button>
         </form>
-
-        <div class="hint-box">
-            Default Credentials:<br>
-            Email: <strong>admin@italianpizza.com</strong><br>
-            Password: <strong>password123</strong>
-        </div>
     </div>
+
+    <script>
+        const toggleBtn = document.getElementById('toggleAdminPwd');
+        const pwdInput = document.getElementById('adminPassword');
+        const toggleIcon = document.getElementById('toggleAdminIcon');
+
+        if (toggleBtn && pwdInput && toggleIcon) {
+            toggleBtn.addEventListener('click', function () {
+                if (pwdInput.type === 'password') {
+                    pwdInput.type = 'text';
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                } else {
+                    pwdInput.type = 'password';
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            });
+        }
+    </script>
 </body>
 </html>

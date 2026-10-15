@@ -41,12 +41,14 @@
                     <div class="form-group">
                         <label class="form-label">Base Price (৳) *</label>
                         <input type="number" name="base_price" step="0.01" min="0" class="form-control" value="{{ old('base_price', 0) }}" required>
-                        <div class="form-hint">Default price fallback</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-solid fa-coins" style="color:#f59e0b;"></i> Reward Points Earned</label>
+                        <input type="number" name="reward_points" min="0" class="form-control" value="{{ old('reward_points', 0) }}" placeholder="e.g. 15">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Default Product Image</label>
                         <input type="file" name="image" class="form-control" accept="image/*" onchange="previewMainImg(this)">
-                        <div class="form-hint"><i class="fa-solid fa-folder"></i> Stored in public/uploads</div>
                         <img id="mainImgPreview" src="" style="display:none;margin-top:8px;height:70px;border-radius:6px;object-fit:cover;">
                     </div>
                 </div>
@@ -62,9 +64,6 @@
                     </label>
                     <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;font-weight:600;">
                         <input type="checkbox" name="is_new" {{ old('is_new') ? 'checked' : '' }}> <i class="fa-solid fa-star" style="color:#3b82f6;"></i> New Item
-                    </label>
-                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;font-weight:600;">
-                        <input type="checkbox" name="is_deal" id="isDealCheck" {{ old('is_deal') ? 'checked' : '' }} onchange="toggleDeal()"> <i class="fa-solid fa-percent" style="color:#10b981;"></i> Deal / Combo
                     </label>
                 </div>
             </div>
@@ -200,24 +199,6 @@
             </div>
         </div>
 
-        {{-- Combo Deals Section --}}
-        <div class="card-panel" id="dealSection" style="margin-bottom:20px;display:{{ old('is_deal') ? 'block' : 'none' }};">
-            <div class="card-panel-header">
-                <span class="card-panel-title"><i class="fa-solid fa-layer-group"></i> Combo Products</span>
-            </div>
-            <div class="card-panel-body">
-                <p style="font-size:0.82rem;color:#64748b;margin-bottom:12px;">Select products included in this combo deal:</p>
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
-                    @foreach($availableProducts as $ap)
-                    <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:0.83rem;">
-                        <input type="checkbox" name="combo_product_ids[]" value="{{ $ap->id }}" {{ in_array($ap->id, old('combo_product_ids', [])) ? 'checked' : '' }}>
-                        {{ $ap->name }}
-                    </label>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
         <button type="submit" class="btn btn-primary" style="padding:12px 28px;font-size:0.95rem;">
             <i class="fa-solid fa-save"></i> Save Product & Variations
         </button>
@@ -248,11 +229,6 @@
             };
             reader.readAsDataURL(input.files[0]);
         }
-    }
-
-    function toggleDeal() {
-        const chk = document.getElementById('isDealCheck');
-        document.getElementById('dealSection').style.display = chk.checked ? 'block' : 'none';
     }
 
     function toggleSizeBox(sizeId) {

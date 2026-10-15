@@ -258,11 +258,11 @@
     <!-- 1. Top Hero Deal Header -->
     <div class="deal-hero-header">
         <div>
-            <span class="deal-badge-pill">🔥 Top Combo Deal</span>
+            <span class="deal-badge-pill"><i class="fa-solid fa-fire"></i> Top Combo Deal</span>
             <h1 class="deal-hero-title">{{ $deal->name }}</h1>
             <p class="deal-hero-desc">{{ $deal->description }}</p>
-            <div style="margin-top: 12px; font-size: 0.85rem; font-weight: 700; color: #fff;">
-                ✓ Select your {{ $comboSlotsCount }} favorite pizzas / items below to customize your combo!
+            <div style="margin-top: 12px; font-size: 0.85rem; font-weight: 700; color: #fff; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-circle-check"></i> <span>Select your {{ $comboSlotsCount }} favorite pizzas / items below to customize your combo!</span>
             </div>
         </div>
 
@@ -299,7 +299,7 @@
                             <div class="slot-prod-card" 
                                  id="card-slot-{{ $slot }}-prod-{{ $prod->id }}" 
                                  onclick="chooseSlotProduct({{ $slot }}, {{ $prod->id }}, '{{ addslashes($prod->name) }}')">
-                                <span class="slot-check-icon">✓</span>
+                                <span class="slot-check-icon"><i class="fa-solid fa-check"></i></span>
                                 <div class="slot-prod-thumb">
                                     <img src="{{ $prod->image ? asset('uploads/' . $prod->image) : asset('images/pizza-hero.jpg') }}" alt="{{ $prod->name }}">
                                 </div>
@@ -345,7 +345,7 @@
                 </div>
 
                 <button type="submit" class="btn-add-combo" id="btnAddCombo" disabled>
-                    <span>Add Combo to Cart ➔</span>
+                    <span>Add Combo to Cart</span> <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </div>
@@ -402,6 +402,17 @@
         @foreach($eligibleProducts->take($comboSlotsCount) as $index => $firstProd)
             chooseSlotProduct({{ $index + 1 }}, {{ $firstProd->id }}, '{{ addslashes($firstProd->name) }}');
         @endforeach
+
+        const isCustomerLoggedIn = {{ Auth::guard('web')->check() ? 'true' : 'false' }};
+        const form = document.getElementById('dealComboForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!isCustomerLoggedIn) {
+                    e.preventDefault();
+                    window.location.href = "{{ route('login') }}";
+                }
+            });
+        }
     });
 </script>
 @endpush

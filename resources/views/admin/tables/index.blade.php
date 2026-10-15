@@ -9,7 +9,7 @@
     <!-- Left: Tables List -->
     <div class="card-panel">
         <div class="card-panel-header">
-            <h3 class="card-panel-title">🍽️ Active Restaurant Tables</h3>
+            <h3 class="card-panel-title"><i class="fa-solid fa-utensils"></i> Active Restaurant Tables</h3>
             <span style="font-size:0.8rem; color:#64748b;">{{ $tables->count() }} Tables Registered</span>
         </div>
 
@@ -66,7 +66,7 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="background:none; border:none; color:#ef4444; font-size:0.8rem; cursor:pointer;">
-                                        🗑️ Delete
+                                        <i class="fa-solid fa-trash-can"></i> Delete
                                     </button>
                                 </form>
                             </td>
@@ -80,7 +80,7 @@
     <!-- Right: Add Table Form -->
     <div class="card-panel">
         <div class="card-panel-header">
-            <h3 class="card-panel-title">➕ Add New Table</h3>
+            <h3 class="card-panel-title"><i class="fa-solid fa-plus"></i> Add New Table</h3>
         </div>
 
         <form action="{{ route('admin.tables.store') }}" method="POST" class="card-panel-body">
