@@ -31,6 +31,10 @@ use App\Http\Middleware\AdminRedirectIfAuthenticated;
 // Homepage (Matching Image 1)
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Category & Menu Routes
+Route::get('/menu', [HomeController::class, 'menu'])->name('menu.index');
+Route::get('/category/{slug}', [HomeController::class, 'category'])->name('category.show');
+
 // Product Customization Modal Details (Matching Image 2)
 Route::get('/product-details/{id}', [HomeController::class, 'getProductDetails'])->name('product.details');
 

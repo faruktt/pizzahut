@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('siteEmail', Setting::getValue('site_email', 'contact@italianpizza.com'));
             $view->with('openingHours', Setting::getValue('opening_hours', 'Daily: 11:00 AM – 11:30 PM'));
             $view->with('googleMapEmbed', Setting::getValue('google_map_embed'));
-            $view->with('footerCategories', \App\Models\Category::where('is_active', true)->orderBy('sort_order')->get()->take(-4));
+            $view->with('footerCategories', \App\Models\Category::where('is_active', true)->orderBy('sort_order')->take(6)->get());
             $view->with('footerPages', \App\Models\Page::where('is_active', true)->orderBy('sort_order')->get());
         });
     }

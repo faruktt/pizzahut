@@ -932,7 +932,7 @@
     <section class="section-wrap">
         <div class="section-header-bar">
             <h2 class="section-title-line">Explore Categories</h2>
-            <a href="#bestsellers" class="view-all-link">View All »</a>
+            <a href="{{ route('menu.index') }}" class="view-all-link">View All »</a>
         </div>
 
         @if($categories->isNotEmpty())
@@ -943,7 +943,7 @@
 
             <div class="categories-carousel" id="categoriesCarousel">
                 @foreach($categories as $cat)
-                    <a href="#cat-{{ $cat->slug }}" class="category-box-card">
+                    <a href="{{ route('category.show', $cat->slug) }}" class="category-box-card">
                         <div class="category-thumb-wrapper">
                             @if($cat->image && file_exists(public_path('uploads/' . $cat->image)))
                                 <img src="{{ asset('uploads/' . $cat->image) }}" alt="{{ $cat->name }}" style="max-height:80px;object-fit:contain;">
@@ -1078,9 +1078,9 @@
         </div>
 
         <div class="view-all-center-box">
-            <button type="button" class="btn-all-menu" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+            <a href="{{ route('menu.index') }}" class="btn-all-menu" style="display:inline-block;text-decoration:none;">
                 View All Menu
-            </button>
+            </a>
         </div>
     </section>
 

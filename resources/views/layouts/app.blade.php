@@ -883,11 +883,11 @@
                     <h4>Categories</h4>
                     <ul>
                         @forelse($footerCategories ?? [] as $fCat)
-                            <li><a href="{{ route('home') }}#category-{{ $fCat->id }}"><i class="fa-solid fa-angle-right" style="font-size:0.7rem;margin-right:4px;color:var(--brand-red);"></i> {{ $fCat->name }}</a></li>
+                            <li><a href="{{ route('category.show', $fCat->slug) }}"><i class="fa-solid fa-angle-right" style="font-size:0.7rem;margin-right:4px;color:var(--brand-red);"></i> {{ $fCat->name }}</a></li>
                         @empty
-                            <li><a href="{{ route('home') }}">Classic Pizzas</a></li>
-                            <li><a href="{{ route('home') }}">Appetizers</a></li>
-                            <li><a href="{{ route('home') }}">Pastas & Pastries</a></li>
+                            <li><a href="{{ route('menu.index') }}">Classic Pizzas</a></li>
+                            <li><a href="{{ route('menu.index') }}">Appetizers</a></li>
+                            <li><a href="{{ route('menu.index') }}">Pastas & Pastries</a></li>
                         @endforelse
                     </ul>
                 </div>
@@ -903,7 +903,7 @@
                             <li><a href="{{ route('page.show', 'privacy-policy') }}">Privacy Policy</a></li>
                             <li><a href="{{ route('page.show', 'terms-and-conditions') }}">Terms & Conditions</a></li>
                         @endforelse
-                        <li><a href="{{ route('admin.login') }}" target="_blank" style="color: #ffaa00; font-weight:600;"><i class="fa-solid fa-lock"></i> Staff / Admin Portal</a></li>
+                       
                     </ul>
                 </div>
 
@@ -932,7 +932,7 @@
 
             <div class="footer-bottom">
                 <div>© {{ date('Y') }}. Italian Pizza Hut. All rights reserved.</div>
-                <div>Powered by <strong>Italian Pizza Hut Ltd.</strong></div>
+               <div>Developed by <strong><a href="https://sarkarit.com" target="_blank" rel="noopener noreferrer">SARKAR IT</a></strong></div>
             </div>
         </div>
     </footer>
@@ -958,6 +958,20 @@
             document.getElementById('btnDelivery').classList.toggle('active', type === 'delivery');
             document.getElementById('btnTakeaway').classList.toggle('active', type === 'takeaway');
             showToast('Order mode switched to: ' + (type === 'delivery' ? 'Delivery' : 'Takeaway'));
+        }
+
+        // Global search handler
+        const globalSearchInput = document.getElementById('globalSearch');
+        if (globalSearchInput) {
+            globalSearchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const q = this.value.trim();
+                    if (q) {
+                        window.location.href = "{{ route('menu.index') }}?q=" + encodeURIComponent(q);
+                    }
+                }
+            });
         }
     </script>
     @stack('scripts')
