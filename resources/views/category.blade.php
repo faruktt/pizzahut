@@ -1065,9 +1065,22 @@
         <div class="products-grid" id="productsGrid">
             @foreach($products as $pizza)
                 @php
-                    $hasVariations = $pizza->variations->isNotEmpty();
+                    $hasVariations = $pizza->variations->filter(function($v) { return !empty($v->crust_id) || !empty($v->crust_name); })->isNotEmpty();
                     $groupedVariations = $hasVariations ? $pizza->variations->groupBy('size_id') : null;
                     $defaultImage = $pizza->image ? asset('uploads/' . $pizza->image) : asset('images/pizza-hero.jpg');
+                    $hasSizes = $hasVariations || $pizza->sizes->isNotEmpty();
+                    $hasCrusts = $hasVariations || $pizza->crusts->isNotEmpty();
+
+                    if ($hasVariations) {
+                        $firstVar = $pizza->variations->first();
+                        $initialPrice = $firstVar ? (float)$firstVar->price : (float)$pizza->base_price;
+                    } elseif ($pizza->sizes->isNotEmpty()) {
+                        $firstSize = $pizza->sizes->first();
+                        $firstCrust = $pizza->crusts->first();
+                        $initialPrice = (float)$firstSize->price + ($firstCrust ? (float)$firstCrust->extra_price : 0);
+                    } else {
+                        $initialPrice = (float)$pizza->base_price;
+                    }
                 @endphp
                 <div class="pizza-item-card product-filter-item" 
                      id="card-prod-{{ $pizza->id }}"
@@ -1092,6 +1105,7 @@
                         @endif
 
                         <!-- Size Dropdown -->
+                        @if($hasSizes)
                         <div class="selector-group">
                             <label class="selector-label">Select Size</label>
                             <select class="custom-select size-select" onchange="onCardSizeChange({{ $pizza->id }})" id="size-{{ $pizza->id }}">
@@ -1111,8 +1125,10 @@
                                 @endif
                             </select>
                         </div>
+                        @endif
 
                         <!-- Crust Dropdown -->
+                        @if($hasCrusts)
                         <div class="selector-group">
                             <label class="selector-label">Select Crust</label>
                             <select class="custom-select crust-select" onchange="onCardCrustChange({{ $pizza->id }})" id="crust-{{ $pizza->id }}">
@@ -1125,12 +1141,13 @@
                                 @endif
                             </select>
                         </div>
+                        @endif
 
                         <div class="pizza-card-footer">
                             <button type="button" class="btn-pizza-add" id="btnAdd-{{ $pizza->id }}" onclick="openCustomizeModal({{ $pizza->id }})">
                                 <span>Add</span>
                                 <span class="pizza-calc-price" id="priceDisplay-{{ $pizza->id }}">
-                                    ৳ {{ number_format($pizza->base_price) }}
+                                    ৳ {{ number_format($initialPrice) }}
                                 </span>
                             </button>
                         </div>
@@ -1180,7 +1197,7 @@
                     <img src="{{ asset('images/pizza-hero.jpg') }}" alt="Pizza preview" class="modal-preview-img" id="modalPizzaImg">
                     <h4 class="modal-item-name" id="modalPizzaName">Classic Margherita</h4>
                     <div class="modal-item-meta" id="modalPizzaMeta">
-                        Size: <strong id="modalSelectedSize">Medium</strong> • Crust: <strong id="modalSelectedCrust">Sausage Crust</strong>
+                        <span id="modalSelectedSizeWrap">Size: <strong id="modalSelectedSize">Medium</strong></span><span id="modalMetaDivider"> • </span><span id="modalSelectedCrustWrap">Crust: <strong id="modalSelectedCrust">Sausage Crust</strong></span>
                     </div>
                 </div>
 
@@ -1242,12 +1259,20 @@
     // Pizza data mapping for dynamic size, crust, and image switching
     const pizzaDataMap = {};
     @foreach($products as $pizza)
+        @php
+            $hasVars = $pizza->variations->filter(function($v) { return !empty($v->crust_id) || !empty($v->crust_name); })->isNotEmpty();
+            $hasSizes = $hasVars || $pizza->sizes->isNotEmpty();
+            $hasCrusts = $hasVars || $pizza->crusts->isNotEmpty();
+        @endphp
         pizzaDataMap[{{ $pizza->id }}] = {
             id: {{ $pizza->id }},
             name: @json($pizza->name),
+            description: @json($pizza->description ?? ''),
             basePrice: {{ (float) $pizza->base_price }},
             baseImage: @json($pizza->image ? asset('uploads/' . $pizza->image) : asset('images/pizza-hero.jpg')),
-            hasVariations: {{ $pizza->variations->isNotEmpty() ? 'true' : 'false' }},
+            hasVariations: {{ $hasVars ? 'true' : 'false' }},
+            hasSizes: {{ $hasSizes ? 'true' : 'false' }},
+            hasCrusts: {{ $hasCrusts ? 'true' : 'false' }},
             variations: @json($pizza->variations)
         };
     @endforeach
@@ -1271,11 +1296,8 @@
 
         const sizeSelect = document.getElementById('size-' + productId);
         const crustSelect = document.getElementById('crust-' + productId);
-        if (!sizeSelect || !crustSelect) return;
-
-        const selectedSizeId = sizeSelect.value;
-
-        if (pData.hasVariations) {
+        if (pData.hasVariations && sizeSelect && crustSelect) {
+            const selectedSizeId = sizeSelect.value;
             const sizeVars = pData.variations.filter(v => String(v.size_id) === String(selectedSizeId));
             crustSelect.innerHTML = '';
 
@@ -1307,9 +1329,7 @@
         const priceDisplay = document.getElementById('priceDisplay-' + productId);
         const imgEl = document.getElementById('pizzaCardImg-' + productId);
 
-        if (!crustSelect) return;
-
-        if (pData.hasVariations) {
+        if (pData.hasVariations && crustSelect) {
             const crustOption = crustSelect.options[crustSelect.selectedIndex];
             if (crustOption) {
                 const price = parseFloat(crustOption.dataset.price || pData.basePrice);
@@ -1317,6 +1337,7 @@
                     priceDisplay.innerText = '৳ ' + Math.round(price).toLocaleString();
                 }
 
+                // Dynamic variation image change!
                 const varImage = crustOption.dataset.image;
                 if (imgEl) {
                     if (varImage) {
@@ -1326,16 +1347,25 @@
                     }
                 }
             }
-        } else {
-            const sizeOption = sizeSelect ? sizeSelect.options[sizeSelect.selectedIndex] : null;
-            const crustOption = crustSelect ? crustSelect.options[crustSelect.selectedIndex] : null;
+        } else if (pData.hasSizes || pData.hasCrusts) {
+            // Legacy calculation with sizes/crusts
+            const sizeOption = sizeSelect && sizeSelect.selectedIndex >= 0 ? sizeSelect.options[sizeSelect.selectedIndex] : null;
+            const crustOption = crustSelect && crustSelect.selectedIndex >= 0 ? crustSelect.options[crustSelect.selectedIndex] : null;
 
-            const sizePrice = parseFloat(sizeOption ? sizeOption.dataset.price || 0 : 0);
+            const sizePrice = parseFloat(sizeOption ? sizeOption.dataset.price || pData.basePrice : pData.basePrice);
             const crustExtra = parseFloat(crustOption ? crustOption.dataset.extra || 0 : 0);
 
             const total = sizePrice + crustExtra;
             if (priceDisplay) {
                 priceDisplay.innerText = '৳ ' + Math.round(total).toLocaleString();
+            }
+        } else {
+            // Product has NO size and NO crust -> Base price is shown!
+            if (priceDisplay) {
+                priceDisplay.innerText = '৳ ' + Math.round(pData.basePrice).toLocaleString();
+            }
+            if (imgEl) {
+                imgEl.src = pData.baseImage;
             }
         }
     }
@@ -1394,26 +1424,57 @@
         const sizeSelect = document.getElementById('size-' + productId);
         const crustSelect = document.getElementById('crust-' + productId);
 
-        const sizeOption = sizeSelect ? sizeSelect.options[sizeSelect.selectedIndex] : null;
-        const crustOption = crustSelect ? crustSelect.options[crustSelect.selectedIndex] : null;
+        const sizeOption = sizeSelect && sizeSelect.selectedIndex >= 0 ? sizeSelect.options[sizeSelect.selectedIndex] : null;
+        const crustOption = crustSelect && crustSelect.selectedIndex >= 0 ? crustSelect.options[crustSelect.selectedIndex] : null;
 
-        const currentSizeName = sizeOption ? (sizeOption.dataset.name || sizeOption.text) : 'Standard';
-        const currentCrustName = crustOption ? (crustOption.dataset.name || crustOption.text) : 'Standard';
+        const currentSizeName = (pData && pData.hasSizes && sizeOption) ? (sizeOption.dataset.name || sizeOption.text) : '';
+        const currentCrustName = (pData && pData.hasCrusts && crustOption) ? (crustOption.dataset.name || crustOption.text) : '';
 
-        if (pData && pData.hasVariations) {
-            modalBasePrice = parseFloat(crustOption ? crustOption.dataset.price || pData.basePrice : pData.basePrice);
+        if (pData && pData.hasVariations && crustOption) {
+            modalBasePrice = parseFloat(crustOption.dataset.price || pData.basePrice);
             modalCrustExtra = 0;
-            const varImg = crustOption ? crustOption.dataset.image : '';
+            const varImg = crustOption.dataset.image;
             document.getElementById('modalPizzaImg').src = varImg ? ('/uploads/' + varImg) : pData.baseImage;
-        } else {
-            modalBasePrice = parseFloat(sizeOption ? sizeOption.dataset.price || pData.basePrice : (pData ? pData.basePrice : 0));
+        } else if (pData && (pData.hasSizes || pData.hasCrusts)) {
+            modalBasePrice = parseFloat(sizeOption ? sizeOption.dataset.price || pData.basePrice : pData.basePrice);
             modalCrustExtra = parseFloat(crustOption ? crustOption.dataset.extra || 0 : 0);
+            document.getElementById('modalPizzaImg').src = pData ? pData.baseImage : '{{ asset('images/pizza-hero.jpg') }}';
+        } else {
+            // No size, no crust: pure base price
+            modalBasePrice = pData ? parseFloat(pData.basePrice) : 0;
+            modalCrustExtra = 0;
             document.getElementById('modalPizzaImg').src = pData ? pData.baseImage : '{{ asset('images/pizza-hero.jpg') }}';
         }
 
         document.getElementById('modalPizzaName').innerText = pData ? pData.name : '';
-        document.getElementById('modalSelectedSize').innerText = currentSizeName;
-        document.getElementById('modalSelectedCrust').innerText = currentCrustName;
+
+        // Meta display (size/crust)
+        const sizeWrap = document.getElementById('modalSelectedSizeWrap');
+        const crustWrap = document.getElementById('modalSelectedCrustWrap');
+        const metaDivider = document.getElementById('modalMetaDivider');
+        const metaContainer = document.getElementById('modalPizzaMeta');
+
+        if (currentSizeName && sizeWrap) {
+            sizeWrap.style.display = 'inline';
+            document.getElementById('modalSelectedSize').innerText = currentSizeName;
+        } else if (sizeWrap) {
+            sizeWrap.style.display = 'none';
+        }
+
+        if (currentCrustName && crustWrap) {
+            crustWrap.style.display = 'inline';
+            document.getElementById('modalSelectedCrust').innerText = currentCrustName;
+        } else if (crustWrap) {
+            crustWrap.style.display = 'none';
+        }
+
+        if (metaDivider) {
+            metaDivider.style.display = (currentSizeName && currentCrustName) ? 'inline' : 'none';
+        }
+
+        if (metaContainer) {
+            metaContainer.style.display = (currentSizeName || currentCrustName) ? 'block' : 'none';
+        }
 
         modalQuantity = 1;
         document.getElementById('modalQtyDisplay').innerText = '1';

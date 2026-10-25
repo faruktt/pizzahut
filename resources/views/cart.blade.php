@@ -477,8 +477,13 @@
                             <img src="{{ !empty($item['image']) ? asset('uploads/' . $item['image']) : asset('images/pizza-hero.jpg') }}" alt="{{ $item['name'] }}" class="cart-item-thumb">
 
                             <div class="cart-item-details">
-                                <h4>{{ $item['name'] }}</h4>
-                                <div class="cart-item-size">Size: {{ $item['size_name'] }} • {{ $item['crust_name'] }}</div>
+                                @if(!empty($item['size_name']) || !empty($item['crust_name']))
+                                    <div class="cart-item-size">
+                                        @if(!empty($item['size_name']))Size: {{ $item['size_name'] }}@endif
+                                        @if(!empty($item['size_name']) && !empty($item['crust_name'])) • @endif
+                                        @if(!empty($item['crust_name'])){{ $item['crust_name'] }}@endif
+                                    </div>
+                                @endif
                                 
                                 @if(!empty($item['is_combo']) && !empty($item['combo_summary']))
                                     <div style="font-size: 0.78rem; color: var(--brand-red); font-weight: 700; margin-top: 2px;">

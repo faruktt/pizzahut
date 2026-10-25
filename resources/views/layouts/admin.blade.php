@@ -553,6 +553,40 @@
         .form-error { font-size: 0.75rem; color: var(--danger); margin-top: 4px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+        /* Global Print Rules: Hide admin sidebar and chrome during printing */
+        @media print {
+            aside.admin-sidebar,
+            header.admin-header,
+            .admin-header,
+            .admin-dropdown-menu,
+            .alert-box,
+            .no-print,
+            .no-print * {
+                display: none !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+
+            .admin-main-wrap {
+                margin-left: 0 !important;
+                width: 100% !important;
+                min-height: auto !important;
+                padding: 0 !important;
+            }
+
+            .admin-page-content {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+        }
     </style>
     @stack('admin-styles')
 </head>

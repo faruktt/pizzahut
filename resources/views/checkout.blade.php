@@ -245,8 +245,13 @@
                         @foreach($cart as $item)
                             <div class="summary-item-row">
                                 <div>
-                                    <strong>{{ $item['quantity'] }}x</strong> {{ $item['name'] }}
-                                    <div style="font-size: 0.72rem; color: #777;">{{ $item['size_name'] }} • {{ $item['crust_name'] }}</div>
+                                    @if(!empty($item['size_name']) || !empty($item['crust_name']))
+                                        <div style="font-size: 0.72rem; color: #777;">
+                                            @if(!empty($item['size_name'])){{ $item['size_name'] }}@endif
+                                            @if(!empty($item['size_name']) && !empty($item['crust_name'])) • @endif
+                                            @if(!empty($item['crust_name'])){{ $item['crust_name'] }}@endif
+                                        </div>
+                                    @endif
                                 </div>
                                 <span style="font-weight: 700;">৳ {{ number_format($item['total_price']) }}</span>
                             </div>

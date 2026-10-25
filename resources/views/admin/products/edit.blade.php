@@ -131,9 +131,10 @@
                     @foreach($sizes as $size)
                     @php
                         $isSizeActive = in_array($size->id, $selectedSizeIds);
+                        $existingSizePrice = $existingSizes[$size->id] ?? ($product->allVariations->where('size_id', $size->id)->first()->price ?? '');
                     @endphp
                     <div class="size-variation-card" id="sizeCard_{{ $size->id }}" style="display:{{ $isSizeActive ? 'block' : 'none' }};background:#fcfcfd;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e2e8f0;flex-wrap:wrap;gap:12px;">
                             <div style="display:flex;align-items:center;gap:8px;">
                                 <span style="background:var(--admin-primary);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;">
                                     <i class="fa-solid fa-ruler"></i>
@@ -142,8 +143,28 @@
                                     Size: {{ $size->name }}
                                 </h4>
                             </div>
-                            <span style="font-size:0.78rem;color:#64748b;background:#e2e8f0;padding:3px 10px;border-radius:12px;font-weight:600;">
-                                Crust configurations
+
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <label style="font-size:0.85rem;font-weight:700;color:#334155;margin:0;">
+                                    Size Price (৳):
+                                </label>
+                                <input type="number" 
+                                       step="0.01" 
+                                       min="0" 
+                                       name="size_prices[{{ $size->id }}]" 
+                                       id="size_price_{{ $size->id }}" 
+                                       value="{{ $existingSizePrice }}"
+                                       placeholder="e.g. 450" 
+                                       class="form-control" 
+                                       style="width:140px;padding:6px 10px;font-size:0.9rem;font-weight:700;" 
+                                       {{ $isSizeActive ? '' : 'disabled' }}>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:0.82rem;font-weight:700;color:#64748b;">
+                                <i class="fa-solid fa-circle-half-stroke" style="color:var(--admin-primary);margin-right:4px;"></i>
+                                Crust Variations (Optional - leave unselected if this size has no crust)
                             </span>
                         </div>
 
@@ -254,15 +275,22 @@
         const chk = document.getElementById('chk_size_' + sizeId);
         const card = document.getElementById('sizeCard_' + sizeId);
         const pill = document.getElementById('pill_size_' + sizeId);
+        const sizePriceInput = document.getElementById('size_price_' + sizeId);
 
         if (chk.checked) {
             card.style.display = 'block';
             pill.style.borderColor = 'var(--admin-primary)';
             pill.style.background = '#fef2f2';
+            if (sizePriceInput) {
+                sizePriceInput.disabled = false;
+            }
         } else {
             card.style.display = 'none';
             pill.style.borderColor = '#e2e8f0';
             pill.style.background = '#fff';
+            if (sizePriceInput) {
+                sizePriceInput.disabled = true;
+            }
             // Disable all crusts in this size
             const crustCheckboxes = card.querySelectorAll('input[type="checkbox"]');
             crustCheckboxes.forEach(c => {

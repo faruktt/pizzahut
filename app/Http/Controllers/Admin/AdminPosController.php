@@ -12,6 +12,7 @@ use App\Models\RestaurantTable;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderItemAddon;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -28,7 +29,11 @@ class AdminPosController extends Controller
         $products = Product::where('is_active', true)->with(['sizes', 'crusts'])->get();
         $addons = AddOn::where('is_active', true)->get();
 
-        return view('admin.pos.index', compact('tables', 'categories', 'products', 'addons'));
+        $restaurantName = Setting::getValue('site_name', 'Italian Pizza');
+        $restaurantAddress = Setting::getValue('site_address', 'House 14, Road 11, Block D, Gulshan-2, Dhaka');
+        $restaurantPhone = Setting::getValue('site_phone', '+880 1711-223344');
+
+        return view('admin.pos.index', compact('tables', 'categories', 'products', 'addons', 'restaurantName', 'restaurantAddress', 'restaurantPhone'));
     }
 
     /**
@@ -37,7 +42,7 @@ class AdminPosController extends Controller
     public function getTableOrder($tableId)
     {
         $table = RestaurantTable::findOrFail($tableId);
-        $order = Order::with(['items.addons'])
+        $order = Order::with(['items.addons', 'table'])
             ->where('restaurant_table_id', $tableId)
             ->whereIn('order_status', ['pending', 'preparing', 'ready', 'served'])
             ->latest()
@@ -89,9 +94,20 @@ class AdminPosController extends Controller
         }
 
         // Calculate pricing
-        $sizeName = $request->size_name ?? 'Standard';
+        $hasSizes = $product->sizes()->exists();
+        $hasCrusts = $product->crusts()->exists();
+
+        $sizeName = null;
+        if ($hasSizes && !empty($request->size_name) && strtolower($request->size_name) !== 'standard') {
+            $sizeName = $request->size_name;
+        }
+
+        $crustName = null;
+        if ($hasCrusts && !empty($request->crust_name) && strtolower($request->crust_name) !== 'standard') {
+            $crustName = $request->crust_name;
+        }
+
         $unitPrice = (float) ($request->unit_price ?? $product->base_price);
-        $crustName = $request->crust_name ?? 'Pan Crust';
         $crustExtra = (float) ($request->crust_extra ?? 0);
 
         $addonsExtra = 0;
@@ -132,7 +148,7 @@ class AdminPosController extends Controller
         // Recalculate order total
         $this->recalculateOrder($order);
 
-        $order->load(['items.addons']);
+        $order->load(['items.addons', 'table']);
 
         return response()->json([
             'success' => true,
@@ -167,7 +183,7 @@ class AdminPosController extends Controller
         }
 
         $this->recalculateOrder($order);
-        $order->load(['items.addons']);
+        $order->load(['items.addons', 'table']);
 
         return response()->json([
             'success' => true,
@@ -194,6 +210,8 @@ class AdminPosController extends Controller
         ]);
 
         $table->update(['status' => 'available']);
+
+        $order->load(['items.addons', 'table']);
 
         return response()->json([
             'success' => true,

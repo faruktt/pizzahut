@@ -92,11 +92,22 @@ class AdminProductController extends Controller
             $existingVariations[$var->size_id][$var->crust_id] = $var;
         }
 
-        $selectedSizeIds = array_keys($existingVariations);
+        $existingSizes = [];
+        foreach ($product->sizes as $ps) {
+            $matchedSize = $sizes->firstWhere('name', $ps->name);
+            if ($matchedSize) {
+                $existingSizes[$matchedSize->id] = $ps->price;
+            }
+        }
+
+        $selectedSizeIds = array_unique(array_merge(
+            array_keys($existingVariations),
+            array_keys($existingSizes)
+        ));
 
         return view('admin.products.edit', compact(
             'product', 'categories', 'sizes', 'crusts',
-            'existingVariations', 'selectedSizeIds'
+            'existingVariations', 'existingSizes', 'selectedSizeIds'
         ));
     }
 
@@ -165,23 +176,31 @@ class AdminProductController extends Controller
      */
     private function syncVariations(Request $request, Product $product)
     {
-        // Delete previous variations
+        // Delete previous variations, sizes, and crusts
         $product->allVariations()->delete();
+        $product->sizes()->delete();
+        $product->crusts()->delete();
 
         $uniqueSizes = [];
         $uniqueCrusts = [];
 
-        if ($request->has('variations') && is_array($request->variations)) {
-            foreach ($request->variations as $sizeId => $crustsData) {
-                // Check if size itself was selected/enabled
-                if (!$request->has("size_selected_{$sizeId}")) {
-                    continue;
-                }
+        $sizePrices = $request->input('size_prices', []);
+        $allSizes = Size::all()->keyBy('id');
 
-                $size = Size::find($sizeId);
-                if (!$size) continue;
+        foreach ($allSizes as $sizeId => $size) {
+            // Check if size itself was selected/enabled
+            if (!$request->has("size_selected_{$sizeId}")) {
+                continue;
+            }
 
-                foreach ($crustsData as $crustId => $vData) {
+            $rawSizePrice = isset($sizePrices[$sizeId]) && $sizePrices[$sizeId] !== '' 
+                ? (float) $sizePrices[$sizeId] 
+                : (float) $product->base_price;
+
+            $hasAnyCrustEnabledForThisSize = false;
+
+            if ($request->has("variations.{$sizeId}") && is_array($request->input("variations.{$sizeId}"))) {
+                foreach ($request->input("variations.{$sizeId}") as $crustId => $vData) {
                     if (empty($vData['enabled'])) {
                         continue;
                     }
@@ -189,7 +208,12 @@ class AdminProductController extends Controller
                     $crust = Crust::find($crustId);
                     if (!$crust) continue;
 
-                    $price = isset($vData['price']) && $vData['price'] !== '' ? (float) $vData['price'] : $product->base_price;
+                    $hasAnyCrustEnabledForThisSize = true;
+
+                    $price = isset($vData['price']) && $vData['price'] !== '' 
+                        ? (float) $vData['price'] 
+                        : $rawSizePrice;
+
                     $varImage = $vData['existing_image'] ?? null;
 
                     // Check if a new image was uploaded for this variation
@@ -220,10 +244,14 @@ class AdminProductController extends Controller
                     }
                 }
             }
+
+            // If no crust was enabled for this size -> it's a Size-Only variation!
+            if (!$hasAnyCrustEnabledForThisSize) {
+                $uniqueSizes[$size->name] = $rawSizePrice;
+            }
         }
 
-        // Backward-compatibility: sync product_sizes & product_crusts
-        $product->sizes()->delete();
+        // Sync product_sizes
         foreach ($uniqueSizes as $sName => $sPrice) {
             ProductSize::create([
                 'product_id' => $product->id,
@@ -232,7 +260,7 @@ class AdminProductController extends Controller
             ]);
         }
 
-        $product->crusts()->delete();
+        // Sync product_crusts (only if crusts were actually enabled)
         foreach ($uniqueCrusts as $cName => $_) {
             ProductCrust::create([
                 'product_id'  => $product->id,

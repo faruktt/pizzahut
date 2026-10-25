@@ -106,39 +106,39 @@ class CartController extends Controller
             $itemImage = $variation->image ?: $product->image;
         } else {
             // Fallback to legacy size/crust calculation
-            $sizeName = 'Standard';
-            $unitPrice = $product->base_price;
+            $sizeName = '';
+            $unitPrice = (float) $product->base_price;
             $itemImage = $product->image;
 
             if ($request->filled('size_id')) {
                 $size = ProductSize::find($request->size_id);
                 if ($size) {
                     $sizeName = $size->name;
-                    $unitPrice = $size->price;
+                    $unitPrice = (float) $size->price;
                 }
-            } elseif ($request->filled('size_name')) {
+            } elseif ($request->filled('size_name') && $request->size_name !== 'Standard' && trim($request->size_name) !== '') {
                 $size = ProductSize::where('product_id', $product->id)->where('name', $request->size_name)->first();
                 if ($size) {
                     $sizeName = $size->name;
-                    $unitPrice = $size->price;
+                    $unitPrice = (float) $size->price;
                 } else {
                     $sizeName = $request->size_name;
                 }
             }
 
-            $crustName = 'Pan Crust';
+            $crustName = '';
             $crustExtra = 0;
             if ($request->filled('crust_id')) {
                 $crust = ProductCrust::find($request->crust_id);
                 if ($crust) {
                     $crustName = $crust->name;
-                    $crustExtra = $crust->extra_price;
+                    $crustExtra = (float) $crust->extra_price;
                 }
-            } elseif ($request->filled('crust_name')) {
+            } elseif ($request->filled('crust_name') && $request->crust_name !== 'Standard' && $request->crust_name !== 'Pan Crust' && trim($request->crust_name) !== '') {
                 $crust = ProductCrust::where('product_id', $product->id)->where('name', $request->crust_name)->first();
                 if ($crust) {
                     $crustName = $crust->name;
-                    $crustExtra = $crust->extra_price;
+                    $crustExtra = (float) $crust->extra_price;
                 } else {
                     $crustName = $request->crust_name;
                 }

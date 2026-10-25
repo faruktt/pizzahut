@@ -186,9 +186,13 @@
                     <div class="receipt-item-row">
                         <div>
                             <strong>{{ $item->quantity }}x</strong> {{ $item->product_name }}
-                            <div style="font-size: 0.76rem; color: #777;">
-                                Size: {{ $item->size_name }} • Crust: {{ $item->crust_name }}
-                            </div>
+                            @if(!empty($item->size_name) || !empty($item->crust_name))
+                                <div style="font-size: 0.76rem; color: #777;">
+                                    @if(!empty($item->size_name))Size: {{ $item->size_name }}@endif
+                                    @if(!empty($item->size_name) && !empty($item->crust_name)) • @endif
+                                    @if(!empty($item->crust_name))Crust: {{ $item->crust_name }}@endif
+                                </div>
+                            @endif
                             @if($item->combo_details)
                                 <div style="font-size: 0.76rem; color: #c8102e; font-weight: 700; margin-top: 2px;">
                                     <i class="fa-solid fa-pizza-slice" style="margin-right:4px;"></i> Combo: {{ $item->combo_details }}

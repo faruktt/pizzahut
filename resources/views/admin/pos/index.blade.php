@@ -517,10 +517,141 @@
         box-shadow: 0 6px 16px rgba(200, 16, 46, 0.35);
     }
 
+    .btn-pos-print {
+        background: #0f172a;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+    .btn-pos-print:hover:not(:disabled) {
+        background: #1e293b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+    }
+
+    /* Thermal Receipt Modal Preview */
+    .thermal-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .thermal-modal.open {
+        display: flex;
+    }
+    .thermal-modal-box {
+        background: #ffffff;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 440px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+    .thermal-modal-top {
+        padding: 14px 18px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f8fafc;
+    }
+    .thermal-modal-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .thermal-paper-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #e2e8f0;
+        display: flex;
+        justify-content: center;
+    }
+    .thermal-paper {
+        background: #ffffff;
+        width: 100%;
+        max-width: 320px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .thermal-modal-actions {
+        padding: 14px 18px;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        gap: 10px;
+        background: #ffffff;
+    }
+
     @media (max-width: 1200px) {
         .pos-container {
             grid-template-columns: 240px 1fr 340px;
             gap: 12px;
+        }
+    }
+
+    /* PRINT RULES: Hide entire Admin Dashboard and print ONLY the receipt */
+    @media print {
+        html, body {
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        .admin-sidebar,
+        .admin-header,
+        .admin-main-wrap,
+        .pos-container,
+        .pos-modal,
+        .alert-box,
+        #adminUserDropdownWrap,
+        .thermal-modal-top,
+        .thermal-modal-actions,
+        .thermal-paper-scroll {
+            display: none !important;
+        }
+
+        #posDirectPrintContainer {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 80mm !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 2mm !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        @page {
+            size: 80mm auto;
+            margin: 0mm;
         }
     }
 </style>
@@ -617,7 +748,7 @@
                 <span id="displaySelectedTableName" style="font-weight:800;">Select a Table</span>
                 <div id="displayTableStatus" style="font-size:0.75rem; color:#64748b; font-weight:normal;">Click a table on the left</div>
             </div>
-            <button type="button" onclick="printReceipt()" style="background:none; border:none; cursor:pointer; font-size:1.1rem; color:#64748b;" title="Print Receipt"><i class="fa-solid fa-print"></i></button>
+            <button type="button" onclick="printPosInvoice()" id="btnPosPrintHeader" style="background:none; border:none; cursor:pointer; font-size:1.15rem; color:#64748b; padding:4px 8px; border-radius:6px;" title="Print Table Invoice"><i class="fa-solid fa-print"></i></button>
         </div>
 
         <!-- Order Items on Table -->
@@ -642,9 +773,14 @@
                 <span id="posTotal">৳ 0</span>
             </div>
 
-            <button type="button" class="btn-pos-pay" id="btnPosComplete" onclick="completeCurrentTableOrder()" disabled style="opacity: 0.6; cursor: not-allowed;">
-                <i class="fa-solid fa-circle-check"></i> Complete Payment & Free Table
-            </button>
+            <div style="display:flex; gap:10px; margin-top:12px;">
+                <button type="button" class="btn-pos-print" id="btnPosPrintFooter" onclick="printPosInvoice()" disabled style="flex:1; opacity:0.5; cursor:not-allowed;">
+                    <i class="fa-solid fa-print"></i> Print Bill
+                </button>
+                <button type="button" class="btn-pos-pay" id="btnPosComplete" onclick="completeCurrentTableOrder()" disabled style="flex:1.4; opacity:0.5; cursor:not-allowed;">
+                    <i class="fa-solid fa-circle-check"></i> Complete & Free
+                </button>
+            </div>
         </div>
     </div>
 
@@ -700,16 +836,56 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL: RESTAURANT THERMAL INVOICE PREVIEW -->
+<div class="thermal-modal" id="posReceiptModal">
+    <div class="thermal-modal-box">
+        <div class="thermal-modal-top">
+            <div class="thermal-modal-title">
+                <i class="fa-solid fa-receipt" style="color:var(--admin-primary);"></i> Restaurant Invoice
+            </div>
+            <button type="button" onclick="closePosReceiptModal()" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#64748b;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="thermal-paper-scroll">
+            <div class="thermal-paper" id="thermalPaperReceipt">
+                <!-- Thermal receipt content injected by JS -->
+            </div>
+        </div>
+        <div class="thermal-modal-actions">
+            <button type="button" onclick="executePrint()" class="btn-quick-pos" style="flex:1; justify-content:center;">
+                <i class="fa-solid fa-print"></i> Print Receipt Now
+            </button>
+            <button type="button" onclick="closePosReceiptModal()" style="padding:10px 18px; border:1px solid #cbd5e1; background:#ffffff; border-radius:8px; font-weight:700; color:#475569; cursor:pointer;">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden container for direct @media print fallback and isolated iframe printing -->
+<div id="posDirectPrintContainer" style="display:none;"></div>
+<iframe id="posPrintIframe" style="position:fixed; right:0; bottom:0; width:0; height:0; border:0; visibility:hidden;"></iframe>
 @endsection
 
 @push('admin-scripts')
 <script>
     let activeTableId = null;
     let activeTableName = '';
+    let currentTableOrder = null;
     let currentModalProd = null;
     let modalUnitPrice = 0;
     let modalCrustExtra = 0;
     let currentCategoryId = 'all';
+    let reloadAfterPrint = false;
+
+    // Restaurant details for invoice
+    window.posSettings = {!! json_encode([
+        'name' => $restaurantName ?? 'ITALIAN PIZZA',
+        'address' => $restaurantAddress ?? 'House 14, Road 11, Block D, Gulshan-2, Dhaka',
+        'phone' => $restaurantPhone ?? '+880 1711-223344',
+    ]) !!};
 
     // Filter categories in POS
     function filterCategory(catId, btn) {
@@ -800,27 +976,54 @@
 
     // Render Order in Column 3
     function renderTableOrder(order) {
+        currentTableOrder = order;
         const container = document.getElementById('posOrderItemsContainer');
         const payBtn = document.getElementById('btnPosComplete');
+        const printBtnFooter = document.getElementById('btnPosPrintFooter');
+        const printBtnHeader = document.getElementById('btnPosPrintHeader');
 
         if (!order || !order.items || order.items.length === 0) {
             container.innerHTML = `
                 <div style="text-align: center; color: #94a3b8; padding: 40px 10px; font-size: 0.85rem;">
-                    No active items on ${activeTableName}.<br>
+                    No active items on ${activeTableName || 'this table'}.<br>
                     Click any menu item to start table order.
                 </div>
             `;
             document.getElementById('posSubtotal').innerText = '৳ 0';
             document.getElementById('posVat').innerText = '৳ 0';
             document.getElementById('posTotal').innerText = '৳ 0';
-            payBtn.disabled = true;
-            payBtn.style.opacity = '0.6';
-            payBtn.style.cursor = 'not-allowed';
+
+            if (payBtn) {
+                payBtn.disabled = true;
+                payBtn.style.opacity = '0.5';
+                payBtn.style.cursor = 'not-allowed';
+            }
+            if (printBtnFooter) {
+                printBtnFooter.disabled = true;
+                printBtnFooter.style.opacity = '0.5';
+                printBtnFooter.style.cursor = 'not-allowed';
+            }
+            if (printBtnHeader) {
+                printBtnHeader.disabled = true;
+                printBtnHeader.style.opacity = '0.4';
+                printBtnHeader.style.cursor = 'not-allowed';
+            }
             return;
         }
 
         let html = '';
         order.items.forEach(item => {
+            // Clean size and crust text
+            let variationParts = [];
+            if (item.size_name && item.size_name.toLowerCase() !== 'standard') {
+                variationParts.push(item.size_name);
+            }
+            if (item.crust_name && item.crust_name.toLowerCase() !== 'standard') {
+                variationParts.push(item.crust_name);
+            }
+            let variationText = variationParts.join(' • ');
+
+            // Add-ons text
             let addonsText = '';
             if (item.addons && item.addons.length > 0) {
                 addonsText = item.addons.map(a => a.add_on_name).join(', ');
@@ -830,8 +1033,9 @@
                 <div class="pos-order-item-row">
                     <div>
                         <strong style="color:#0f172a;">${item.quantity}x ${item.product_name}</strong>
-                        <div style="font-size:0.75rem; color:#64748b;">${item.size_name || ''} • ${item.crust_name || ''}</div>
-                        ${addonsText ? `<div style="font-size:0.72rem; color:#0284c7;">+ ${addonsText}</div>` : ''}
+                        ${variationText ? `<div style="font-size:0.75rem; color:#64748b; margin-top:1px;">${variationText}</div>` : ''}
+                        ${addonsText ? `<div style="font-size:0.72rem; color:#0284c7; margin-top:2px;"><i class="fa-solid fa-plus" style="font-size:0.65rem;"></i> ${addonsText}</div>` : ''}
+                        ${item.special_instructions ? `<div style="font-size:0.7rem; color:#64748b; font-style:italic; margin-top:2px;">Note: ${item.special_instructions}</div>` : ''}
                     </div>
                     <div style="text-align:right;">
                         <strong style="color:var(--admin-primary);">৳ ${Math.round(item.total_price).toLocaleString()}</strong>
@@ -850,9 +1054,21 @@
         document.getElementById('posVat').innerText = '৳ ' + Math.round(order.vat_tax).toLocaleString();
         document.getElementById('posTotal').innerText = '৳ ' + Math.round(order.total_amount).toLocaleString();
 
-        payBtn.disabled = false;
-        payBtn.style.opacity = '1';
-        payBtn.style.cursor = 'pointer';
+        if (payBtn) {
+            payBtn.disabled = false;
+            payBtn.style.opacity = '1';
+            payBtn.style.cursor = 'pointer';
+        }
+        if (printBtnFooter) {
+            printBtnFooter.disabled = false;
+            printBtnFooter.style.opacity = '1';
+            printBtnFooter.style.cursor = 'pointer';
+        }
+        if (printBtnHeader) {
+            printBtnHeader.disabled = false;
+            printBtnHeader.style.opacity = '1';
+            printBtnHeader.style.cursor = 'pointer';
+        }
     }
 
     // Open Modal to Customize Item for Table
@@ -876,7 +1092,7 @@
                     });
                     document.getElementById('posSizeGroup').style.display = 'block';
                 } else {
-                    sizeSelect.innerHTML = `<option value="" data-name="Standard" data-price="${currentModalProd.base_price}">Standard - ৳${Math.round(currentModalProd.base_price)}</option>`;
+                    sizeSelect.innerHTML = `<option value="" data-name="" data-price="${currentModalProd.base_price}">Base Price - ৳${Math.round(currentModalProd.base_price)}</option>`;
                     document.getElementById('posSizeGroup').style.display = 'none';
                 }
 
@@ -888,7 +1104,7 @@
                     });
                     document.getElementById('posCrustGroup').style.display = 'block';
                 } else {
-                    crustSelect.innerHTML = `<option value="" data-name="Standard" data-extra="0">Standard</option>`;
+                    crustSelect.innerHTML = `<option value="" data-name="" data-extra="0">None</option>`;
                     document.getElementById('posCrustGroup').style.display = 'none';
                 }
 
@@ -934,9 +1150,9 @@
 
         const payload = {
             product_id: currentModalProd.id,
-            size_name: sizeSelect.options[sizeSelect.selectedIndex]?.dataset.name,
+            size_name: (sizeSelect.options[sizeSelect.selectedIndex]?.dataset.name || '').trim(),
             unit_price: modalUnitPrice,
-            crust_name: crustSelect.options[crustSelect.selectedIndex]?.dataset.name,
+            crust_name: (crustSelect.options[crustSelect.selectedIndex]?.dataset.name || '').trim(),
             crust_extra: modalCrustExtra,
             addons: selectedAddonIds,
             quantity: 1,
@@ -1008,14 +1224,247 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert(`✓ ${activeTableName} payment completed and table is now Available!`);
-                location.reload();
+                const finishedOrder = data.order || currentTableOrder;
+                const tblName = activeTableName;
+
+                if (confirm(`✓ Payment completed for ${tblName}!\n\nDo you want to print the restaurant invoice now?`)) {
+                    reloadAfterPrint = true;
+                    if (finishedOrder) {
+                        finishedOrder.payment_status = 'paid';
+                        printPosInvoice(finishedOrder, tblName);
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    location.reload();
+                }
             }
         });
     }
 
-    function printReceipt() {
-        window.print();
+    // Generate Restaurant Thermal Invoice HTML
+    function generateReceiptHtml(order, tableNumber) {
+        const restName = window.posSettings?.name || 'ITALIAN PIZZA';
+        const restAddress = window.posSettings?.address || 'House 14, Road 11, Block D, Gulshan-2, Dhaka';
+        const restPhone = window.posSettings?.phone || '+880 1711-223344';
+
+        let orderDate = '';
+        if (order.created_at) {
+            const d = new Date(order.created_at);
+            orderDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' +
+                        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        } else {
+            const d = new Date();
+            orderDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' +
+                        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        let itemsHtml = '';
+        (order.items || []).forEach(item => {
+            // Variation: Size & Crust
+            let variationParts = [];
+            if (item.size_name && item.size_name.toLowerCase() !== 'standard') {
+                variationParts.push('Size: ' + item.size_name);
+            }
+            if (item.crust_name && item.crust_name.toLowerCase() !== 'standard') {
+                variationParts.push('Crust: ' + item.crust_name);
+            }
+            let variationLine = variationParts.join(' | ');
+
+            // Add-ons list
+            let addonsHtml = '';
+            if (item.addons && item.addons.length > 0) {
+                addonsHtml = item.addons.map(a => `<div style="font-size: 11px; color: #333; margin-top: 1px; padding-left: 10px;">+ ${a.add_on_name} (৳${Math.round(a.price)})</div>`).join('');
+            }
+
+            itemsHtml += `
+                <div style="margin-bottom: 7px; padding-bottom: 5px; border-bottom: 1px dotted #ccc;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; font-weight: bold; font-size: 13px;">
+                        <span style="flex: 1; padding-right: 8px;">${item.quantity}x ${item.product_name}</span>
+                        <span style="white-space: nowrap;">৳${Math.round(item.total_price).toLocaleString()}</span>
+                    </div>
+                    ${variationLine ? `<div style="font-size: 11px; color: #333; margin-top: 1px; padding-left: 10px;">${variationLine}</div>` : ''}
+                    ${addonsHtml}
+                    ${item.special_instructions ? `<div style="font-size: 10px; font-style: italic; color: #555; padding-left: 10px;">Note: ${item.special_instructions}</div>` : ''}
+                </div>
+            `;
+        });
+
+        const subtotal = Math.round(order.subtotal || 0).toLocaleString();
+        const vat = Math.round(order.vat_tax || 0).toLocaleString();
+        const total = Math.round(order.total_amount || 0).toLocaleString();
+        const isPaid = (order.payment_status === 'paid');
+        const resolvedTable = tableNumber || (order.table ? order.table.table_number : activeTableName) || 'Table';
+
+        return `
+            <div style="width: 100%; max-width: 300px; margin: 0 auto; padding: 12px 10px; font-family: 'Courier New', Courier, monospace; color: #000; font-size: 12px; line-height: 1.35; background: #fff; box-sizing: border-box;">
+                
+                <!-- RESTAURANT BRANDING -->
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <h2 style="margin: 0; font-size: 18px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase;">${restName}</h2>
+                    <div style="font-size: 10.5px; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Authentic Italian Oven & Dine</div>
+                    <div style="font-size: 10px; margin-top: 2px; color: #333;">${restAddress}</div>
+                    <div style="font-size: 10px; color: #333;">Hotline: ${restPhone}</div>
+                </div>
+
+                <div style="border-top: 2px dashed #000; margin: 8px 0;"></div>
+
+                <!-- TABLE NUMBER & INVOICE DETAILS -->
+                <div style="margin: 6px 0; font-size: 11.5px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; background: #000; color: #fff; padding: 4px 8px; border-radius: 4px;">
+                        <span style="font-weight: 900; font-size: 14px; letter-spacing: 0.5px;">TABLE:</span>
+                        <span style="font-weight: 900; font-size: 15px; letter-spacing: 0.5px;">${resolvedTable}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                        <span>Invoice No:</span>
+                        <strong>#${order.order_number || 'POS-INVOICE'}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                        <span>Date & Time:</span>
+                        <span>${orderDate}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Order Type:</span>
+                        <span>Dine-In (Table Bill)</span>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px dashed #000; margin: 8px 0;"></div>
+
+                <!-- TABLE ITEMS HEADER -->
+                <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 11.5px; margin-bottom: 4px; text-transform: uppercase;">
+                    <span>Qty Description</span>
+                    <span>Total</span>
+                </div>
+
+                <div style="border-top: 1px solid #000; margin-bottom: 6px;"></div>
+
+                <!-- ITEMS LIST -->
+                <div style="margin-bottom: 6px;">
+                    ${itemsHtml}
+                </div>
+
+                <div style="border-top: 1px dashed #000; margin: 8px 0;"></div>
+
+                <!-- BILL TOTALS -->
+                <div style="font-size: 11.5px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                        <span>Subtotal:</span>
+                        <strong>৳ ${subtotal}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>VAT / Tax (5%):</span>
+                        <span>৳ ${vat}</span>
+                    </div>
+
+                    <div style="border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 5px 0; margin: 6px 0; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 900; font-size: 14px;">TOTAL:</span>
+                        <span style="font-weight: 900; font-size: 16px;">৳ ${total}</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 3px; font-size: 11px;">
+                        <span>Payment Method:</span>
+                        <span style="text-transform: uppercase;">${order.payment_method || 'Cash'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 2px; font-size: 11px;">
+                        <span>Payment Status:</span>
+                        <strong style="text-transform: uppercase; color: ${isPaid ? '#000' : '#dc2626'};">${isPaid ? 'PAID' : 'DUE / RUNNING BILL'}</strong>
+                    </div>
+                </div>
+
+                <div style="border-top: 2px dashed #000; margin: 10px 0 6px 0;"></div>
+
+                <!-- FOOTER -->
+                <div style="text-align: center; font-size: 11px; color: #111; margin-top: 4px;">
+                    <div style="font-weight: bold; margin-bottom: 2px;">Thank you for dining with us!</div>
+                    <div>Please visit again!</div>
+                    <div style="font-size: 9px; color: #666; margin-top: 4px;">Italian Pizza Restaurant POS</div>
+                </div>
+
+            </div>
+        `;
+    }
+
+    // Print Receipt Function
+    function printPosInvoice(customOrder = null, customTableName = null) {
+        const orderToPrint = customOrder || currentTableOrder;
+        const tableNameToPrint = customTableName || activeTableName;
+
+        if (!orderToPrint || !orderToPrint.items || orderToPrint.items.length === 0) {
+            alert('Please select a table with active order items to print invoice.');
+            return;
+        }
+
+        const receiptHtml = generateReceiptHtml(orderToPrint, tableNameToPrint);
+
+        // Update modal and fallback print container
+        const modalContainer = document.getElementById('thermalPaperReceipt');
+        if (modalContainer) modalContainer.innerHTML = receiptHtml;
+
+        const directContainer = document.getElementById('posDirectPrintContainer');
+        if (directContainer) directContainer.innerHTML = receiptHtml;
+
+        // Open preview modal
+        const modal = document.getElementById('posReceiptModal');
+        if (modal) modal.classList.add('open');
+
+        // Immediately trigger print via isolated iframe
+        executePrint();
+    }
+
+    // Execute iframe printing (isolated, thermal 80mm styled)
+    function executePrint() {
+        const directContainer = document.getElementById('posDirectPrintContainer');
+        if (!directContainer || !directContainer.innerHTML) return;
+
+        const printFrame = document.getElementById('posPrintIframe');
+        if (!printFrame) return;
+
+        try {
+            const frameDoc = printFrame.contentWindow.document;
+            frameDoc.open();
+            frameDoc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Restaurant Invoice - Italian Pizza</title>
+                    <style>
+                        @page {
+                            size: 80mm auto;
+                            margin: 2mm;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background: #ffffff;
+                            font-family: 'Courier New', Courier, monospace;
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${directContainer.innerHTML}
+                </body>
+                </html>
+            `);
+            frameDoc.close();
+
+            printFrame.contentWindow.focus();
+            setTimeout(() => {
+                printFrame.contentWindow.print();
+            }, 250);
+        } catch (e) {
+            // Fallback to window.print() if iframe blocked
+            window.print();
+        }
+    }
+
+    function closePosReceiptModal() {
+        const modal = document.getElementById('posReceiptModal');
+        if (modal) modal.classList.remove('open');
+        if (reloadAfterPrint) {
+            reloadAfterPrint = false;
+            location.reload();
+        }
     }
 
     // Auto select table if query string provided
