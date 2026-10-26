@@ -139,6 +139,7 @@
         border-radius: 14px;
         display: flex;
         flex-direction: column;
+        min-height: 0;
         overflow: hidden;
         box-shadow: 0 2px 10px rgba(0,0,0,0.03);
     }
@@ -245,19 +246,35 @@
         box-shadow: 0 2px 6px rgba(200, 16, 46, 0.25);
     }
 
-    /* Products Grid: 4 cards per row */
+    /* Products Grid: 4 cards per row, never collapses */
     .pos-products-grid {
         flex: 1;
+        min-height: 0;
         overflow-y: auto;
         padding: 12px;
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
+        grid-auto-rows: minmax(195px, auto);
+        gap: 12px;
         align-content: start;
     }
 
+    @media (max-width: 1400px) {
+        .pos-products-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 1100px) {
+        .pos-products-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
     .pos-product-card {
-        border: 1px solid #e2e8f0;
+        min-height: 195px;
+        height: 100%;
+        border: 1.5px solid #e2e8f0;
         border-radius: 14px;
         background: #ffffff;
         cursor: pointer;
@@ -267,6 +284,11 @@
         overflow: hidden;
         user-select: none;
         box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        box-sizing: border-box;
+    }
+
+    .pos-product-card.pos-card-hidden {
+        display: none !important;
     }
 
     .pos-product-card:hover {
@@ -280,10 +302,13 @@
         box-shadow: 0 3px 8px rgba(200, 16, 46, 0.1);
     }
 
-    /* Top: Large Image Area */
+    /* Top: Image Area */
     .pos-prod-img-box {
         width: 100%;
-        height: 105px;
+        height: 115px;
+        min-height: 115px;
+        max-height: 115px;
+        flex-shrink: 0;
         background: #f8fafc;
         display: flex;
         align-items: center;
@@ -296,9 +321,11 @@
     .pos-prod-img {
         width: 100%;
         height: 100%;
+        max-height: 100px;
         object-fit: contain;
         transition: transform 0.25s ease;
         filter: drop-shadow(0 3px 6px rgba(0,0,0,0.08));
+        display: block;
     }
 
     .pos-product-card:hover .pos-prod-img {
@@ -320,50 +347,55 @@
 
     /* Bottom: Name & Price Area */
     .pos-prod-body {
-        padding: 10px 10px 12px;
+        padding: 10px 12px 12px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        flex: 1;
+        flex: 1 0 auto;
+        min-height: 75px;
         background: #ffffff;
         border-top: 1px solid #f1f5f9;
+        box-sizing: border-box;
     }
 
     .pos-prod-name {
-        font-size: 0.85rem;
+        font-size: 0.88rem;
         font-weight: 800;
         color: #0f172a;
-        line-height: 1.25;
-        margin-bottom: 5px;
+        line-height: 1.3;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
+        word-break: break-word;
     }
 
     .pos-prod-price-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: 2px;
+        margin-top: auto;
     }
 
     .pos-prod-price {
-        font-size: 0.86rem;
-        font-weight: 800;
+        font-size: 0.92rem;
+        font-weight: 900;
         color: var(--admin-primary);
         letter-spacing: -0.2px;
     }
 
     .pos-card-add-icon {
-        width: 22px;
-        height: 22px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         background: #f1f5f9;
         color: #64748b;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         transition: all 0.2s ease;
     }
 
@@ -720,11 +752,14 @@
         <!-- Products Grid: 4 cards per row, large image on top, name and price below -->
         <div class="pos-products-grid" id="posProductsGrid">
             @foreach($products as $prod)
+                @php
+                    $hasImg = !empty($prod->image) && file_exists(public_path('uploads/' . $prod->image));
+                    $imgUrl = $hasImg ? asset('uploads/' . $prod->image) : (file_exists(public_path('images/pizza-hero.jpg')) ? asset('images/pizza-hero.jpg') : null);
+                @endphp
                 <div class="pos-product-card" data-category="{{ $prod->category_id }}" data-name="{{ strtolower($prod->name) }}" onclick="openPosItemModal({{ $prod->id }})">
                     <div class="pos-prod-img-box">
-                        @if($prod->image)
-                            <img src="{{ asset('uploads/' . $prod->image) }}" alt="{{ $prod->name }}" class="pos-prod-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="pos-thumb-fallback" style="display:none;"><i class="fa-solid fa-pizza-slice"></i></div>
+                        @if($imgUrl)
+                            <img src="{{ $imgUrl }}" alt="{{ $prod->name }}" class="pos-prod-img" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('images/pizza-hero.jpg') }}';">
                         @else
                             <div class="pos-thumb-fallback"><i class="fa-solid fa-pizza-slice"></i></div>
                         @endif
@@ -889,9 +924,9 @@
 
     // Filter categories in POS
     function filterCategory(catId, btn) {
-        currentCategoryId = catId;
+        currentCategoryId = String(catId).trim();
         document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        if (btn) btn.classList.add('active');
         applyProductFilters();
     }
 
@@ -918,15 +953,18 @@
         let visibleCount = 0;
 
         document.querySelectorAll('.pos-product-card').forEach(card => {
-            const matchesCat = (currentCategoryId === 'all' || card.dataset.category === currentCategoryId);
+            const cardCat = String(card.dataset.category || '').trim();
+            const matchesCat = (currentCategoryId === 'all' || cardCat === currentCategoryId);
             const name = (card.dataset.name || card.querySelector('.pos-prod-name')?.innerText || '').toLowerCase();
             const matchesSearch = !query || name.includes(query);
 
             if (matchesCat && matchesSearch) {
-                card.style.display = 'flex';
+                card.classList.remove('pos-card-hidden');
+                card.style.setProperty('display', 'flex', 'important');
                 visibleCount++;
             } else {
-                card.style.display = 'none';
+                card.classList.add('pos-card-hidden');
+                card.style.setProperty('display', 'none', 'important');
             }
         });
 
