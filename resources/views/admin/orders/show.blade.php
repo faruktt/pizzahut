@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Order Invoice #' . $order->order_number . ' | Italian Pizza')
+@section('title', 'Order Invoice #' . $order->order_number . ' | Italian Pizza Hut')
 @section('page-title', 'Order #' . $order->order_number)
 
 @push('admin-styles')
@@ -309,18 +309,19 @@
         letter-spacing: 0.3px;
     }
 
-    /* A4 Print Styles */
-    @media print {
-        @page {
-            size: A4 portrait;
-            margin: 10mm 14mm;
-        }
+    /* Hidden on normal screen */
+    .pos-receipt-print-only {
+        display: none;
+    }
 
+    /* Print Styles (Adaptive for POS 58mm, 80mm & A4) */
+    @media print {
         body, html {
             background: #ffffff !important;
             color: #000000 !important;
             margin: 0 !important;
             padding: 0 !important;
+            width: 100% !important;
         }
 
         .no-print,
@@ -328,50 +329,110 @@
             display: none !important;
         }
 
-        .invoice-page-wrapper {
+        /* 1. POS 58mm Thermal Receipt Print Mode (Default for standard mini thermal printers) */
+        body.mode-pos-58 @page,
+        body.mode-pos @page {
+            size: 58mm auto;
+            margin: 0mm !important;
+        }
+        body.mode-pos-58 .a4-sheet,
+        body.mode-pos-58 .invoice-card,
+        body.mode-pos .a4-sheet,
+        body.mode-pos .invoice-card {
+            display: none !important;
+        }
+        body.mode-pos-58 .pos-receipt-print-only,
+        body.mode-pos .pos-receipt-print-only {
+            display: block !important;
+            width: 48mm !important;
+            max-width: 48mm !important;
+            margin: 0 auto !important;
+            padding: 1mm 1mm !important;
+            box-sizing: border-box !important;
+        }
+        body.mode-pos-58 .pos-receipt-print-only .thermal-receipt-wrap,
+        body.mode-pos .pos-receipt-print-only .thermal-receipt-wrap {
+            width: 48mm !important;
+            max-width: 48mm !important;
+            font-size: 9.5px !important;
+            line-height: 1.28 !important;
+            padding: 1mm !important;
+            box-sizing: border-box !important;
+        }
+
+        /* 2. POS 80mm Thermal Receipt Print Mode */
+        body.mode-pos-80 @page {
+            size: 80mm auto;
+            margin: 0mm !important;
+        }
+        body.mode-pos-80 .a4-sheet,
+        body.mode-pos-80 .invoice-card {
+            display: none !important;
+        }
+        body.mode-pos-80 .pos-receipt-print-only {
+            display: block !important;
+            width: 72mm !important;
+            max-width: 72mm !important;
+            margin: 0 auto !important;
+            padding: 2mm 2mm !important;
+            box-sizing: border-box !important;
+        }
+        body.mode-pos-80 .pos-receipt-print-only .thermal-receipt-wrap {
+            width: 72mm !important;
+            max-width: 72mm !important;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+            padding: 2mm !important;
+            box-sizing: border-box !important;
+        }
+
+        /* 3. Web A4 Sheet Print Mode */
+        body.mode-a4 @page {
+            size: A4 portrait;
+            margin: 10mm 14mm;
+        }
+        body.mode-a4 .pos-receipt-print-only {
+            display: none !important;
+        }
+        body.mode-a4 .invoice-page-wrapper {
             max-width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
         }
-
-        .invoice-card {
+        body.mode-a4 .invoice-card {
             border: none !important;
             box-shadow: none !important;
             border-radius: 0 !important;
+            display: block !important;
         }
-
-        .a4-sheet {
+        body.mode-a4 .a4-sheet {
+            display: block !important;
             padding: 0 !important;
             width: 100% !important;
         }
-
-        .invoice-table thead th {
+        body.mode-a4 .invoice-table thead th {
             background: #0f172a !important;
             color: #ffffff !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-
-        .invoice-table tbody tr {
+        body.mode-a4 .invoice-table tbody tr {
             page-break-inside: avoid !important;
         }
-
-        .invoice-info-card,
-        .invoice-calc-card {
+        body.mode-a4 .invoice-info-card,
+        body.mode-a4 .invoice-calc-card {
             background: #ffffff !important;
             border: 1px solid #cbd5e1 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-
-        .table-callout {
+        body.mode-a4 .table-callout {
             background: #eff6ff !important;
             border: 1px solid #93c5fd !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-
-        .calc-grand-total {
+        body.mode-a4 .calc-grand-total {
             color: #000000 !important;
             border-top: 2px solid #000000 !important;
         }
@@ -380,23 +441,57 @@
 @endpush
 
 @section('admin-content')
+@php
+    $isPosOrTakeaway = in_array($order->order_type, ['dine_in', 'takeaway'])
+        || !empty($order->restaurant_table_id)
+        || \Illuminate\Support\Str::startsWith($order->order_number, 'POS-');
+@endphp
 <div class="invoice-page-wrapper">
     <div class="invoice-card">
 
         <!-- Top Screen Actions Header (Hidden on Print) -->
         <div class="invoice-screen-header no-print">
             <div>
-                <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0;">
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 0; display:flex; align-items:center; gap:8px;">
                     Order Invoice #{{ $order->order_number }}
+                    @if($isPosOrTakeaway)
+                        <span class="badge" style="background:#e0f2fe; color:#0369a1; font-size:0.72rem; padding:3px 8px; border-radius:6px; font-weight:700;">
+                            <i class="fa-solid fa-cash-register"></i> POS / Dine-in
+                        </span>
+                    @else
+                        <span class="badge" style="background:#fef3c7; color:#92400e; font-size:0.72rem; padding:3px 8px; border-radius:6px; font-weight:700;">
+                            <i class="fa-solid fa-globe"></i> Web Delivery
+                        </span>
+                    @endif
                 </h3>
                 <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">
                     Placed on {{ $order->created_at->format('d M Y, h:i A') }}
                 </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="button" onclick="window.print()" class="btn-quick-pos" style="padding: 8px 16px; font-size: 0.85rem; cursor: pointer;">
-                    <i class="fa-solid fa-print"></i> Print A4 Invoice
-                </button>
+            <div style="display: flex; gap: 8px; align-items:center; flex-wrap:wrap;">
+                @if($isPosOrTakeaway)
+                    <!-- Primary: POS 58mm Thermal Receipt (Fits narrow paper rolls without cutting) -->
+                    <button type="button" onclick="printPosInvoice('58mm')" class="btn-quick-pos" style="padding: 8px 14px; font-size: 0.85rem; cursor: pointer;" title="Print 58mm thermal receipt (২ ইঞ্চি / কোনো সাইড কাটবে না)">
+                        <i class="fa-solid fa-receipt"></i> Print POS (58mm)
+                    </button>
+                    <button type="button" onclick="printPosInvoice('80mm')" class="btn-view-store" style="padding: 8px 12px; font-size: 0.85rem; background:#fff; border:1.5px solid #cbd5e1; color:#334155; cursor:pointer;" title="Print 80mm thermal receipt (৩ ইঞ্চি)">
+                        <i class="fa-solid fa-receipt"></i> POS (80mm)
+                    </button>
+                    <button type="button" onclick="printA4Invoice()" class="btn-view-store" style="padding: 8px 12px; font-size: 0.85rem; background:#fff; border:1.5px solid #cbd5e1; color:#334155; cursor:pointer;" title="Print standard A4 sheet">
+                        <i class="fa-solid fa-file-invoice"></i> A4 Sheet
+                    </button>
+                @else
+                    <!-- Primary: A4 for Web Customer Orders -->
+                    <button type="button" onclick="printA4Invoice()" class="btn-quick-pos" style="padding: 8px 16px; font-size: 0.85rem; cursor: pointer;" title="Print standard A4 sheet">
+                        <i class="fa-solid fa-file-invoice"></i> Print A4 Invoice
+                    </button>
+                    <button type="button" onclick="printPosInvoice('58mm')" class="btn-view-store" style="padding: 8px 12px; font-size: 0.85rem; background:#fff; border:1.5px solid #cbd5e1; color:#334155; cursor:pointer;" title="Print 58mm thermal receipt (২ ইঞ্চি)">
+                        <i class="fa-solid fa-receipt"></i> POS (58mm)
+                    </button>
+                    <button type="button" onclick="printPosInvoice('80mm')" class="btn-view-store" style="padding: 8px 12px; font-size: 0.85rem; background:#fff; border:1.5px solid #cbd5e1; color:#334155; cursor:pointer;" title="Print 80mm thermal receipt (৩ ইঞ্চি)">
+                        <i class="fa-solid fa-receipt"></i> POS (80mm)
+                    </button>
+                @endif
                 <a href="{{ route('admin.orders.index') }}" class="btn-view-store" style="padding: 8px 14px; font-size: 0.85rem;">
                     <i class="fa-solid fa-arrow-left"></i> Back to Orders
                 </a>
@@ -438,9 +533,13 @@
                 </select>
 
                 <select name="payment_status" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600;">
-                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Unpaid</option>
                     <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Paid</option>
+                    <option value="partial" {{ $order->payment_status === 'partial' ? 'selected' : '' }}>Partial</option>
+                    <option value="due" {{ $order->payment_status === 'due' ? 'selected' : '' }}>Due (Unpaid)</option>
+                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Pending</option>
                 </select>
+
+                <input type="number" step="0.01" min="0" name="paid_amount" value="{{ (float)$order->paid_amount }}" class="form-control" placeholder="Paid (৳)" style="width:110px; padding:6px 10px; font-size:0.82rem;" title="Paid Amount (৳)">
 
                 <button type="submit" class="btn-quick-pos" style="padding: 6px 14px; font-size: 0.82rem;">
                     <i class="fa-solid fa-check"></i> Save
@@ -454,10 +553,10 @@
         <div class="a4-sheet">
             @php
                 $siteLogo = \App\Models\Setting::getValue('site_logo');
-                $siteName = \App\Models\Setting::getValue('site_name', 'Italian Pizza');
+                $siteName = \App\Models\Setting::getValue('site_name', 'Italian Pizza Hut');
                 $siteAddress = \App\Models\Setting::getValue('site_address', 'House 14, Road 11, Block D, Gulshan-2, Dhaka');
                 $sitePhone = \App\Models\Setting::getValue('site_phone', '+880 1711-223344');
-                $siteEmail = \App\Models\Setting::getValue('site_email', 'contact@italianpizza.com');
+                $siteEmail = \App\Models\Setting::getValue('site_email', 'contact@italianpizzahut.com');
             @endphp
 
             <!-- 1. HEADER: BRAND & INVOICE META -->
@@ -593,11 +692,13 @@
             <div class="invoice-bottom-grid">
                 <div class="invoice-terms-card">
                     <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px; text-transform: uppercase;">Terms & Notes</div>
-                    <div>• All prices are inclusive of applicable VAT / Tax (5%).</div>
+                    @if($order->vat_tax > 0)
+                        <div>• Prices include applicable VAT / Tax.</div>
+                    @endif
                     <div>• Please preserve this invoice for any verification or customer queries.</div>
                     <div>• Hotline support: {{ $sitePhone }}</div>
                     <div style="margin-top: 10px; font-weight: 700; color: var(--admin-primary); font-size: 0.85rem;">
-                        Thank you for dining with Italian Pizza!
+                        Thank you for dining with Italian Pizza Hut!
                     </div>
                 </div>
 
@@ -612,6 +713,12 @@
                             <strong>-৳ {{ number_format($order->coupon_discount) }}</strong>
                         </div>
                     @endif
+                    @if($order->discount > 0)
+                        <div class="calc-row discount">
+                            <span>Discount (ছাড়):</span>
+                            <strong>-৳ {{ number_format($order->discount) }}</strong>
+                        </div>
+                    @endif
                     @if($order->points_discount > 0)
                         <div class="calc-row discount">
                             <span>Points Redeemed ({{ $order->points_used }} pts):</span>
@@ -624,14 +731,26 @@
                             <strong>৳ {{ number_format($order->delivery_charge) }}</strong>
                         </div>
                     @endif
+                    @if($order->vat_tax > 0)
                     <div class="calc-row">
-                        <span>VAT / Tax (5%):</span>
+                        <span>VAT / Tax:</span>
                         <strong>৳ {{ number_format($order->vat_tax) }}</strong>
                     </div>
+                    @endif
                     <div class="calc-grand-total">
                         <span>Grand Total:</span>
                         <span>৳ {{ number_format($order->total_amount) }}</span>
                     </div>
+                    <div class="calc-row" style="margin-top:6px; font-size:0.9rem;">
+                        <span>Paid Cash:</span>
+                        <strong style="color:#16a34a;">৳ {{ number_format($order->paid_amount, 2) }}</strong>
+                    </div>
+                    @if($order->due_amount > 0)
+                        <div class="calc-row" style="color:#dc2626; font-weight:800; font-size:0.95rem; background:#fee2e2; padding:4px 8px; border-radius:4px; margin-top:4px;">
+                            <span>Due Balance:</span>
+                            <strong style="color:#dc2626;">৳ {{ number_format($order->due_amount, 2) }}</strong>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -650,4 +769,190 @@
         </div>
     </div>
 </div>
+
+<!-- ============================================================== -->
+<!-- POS THERMAL RECEIPT CONTAINER (58mm / 80mm Adaptive)          -->
+<!-- ============================================================== -->
+<div id="posThermalReceiptContainer" class="pos-receipt-print-only">
+    @php
+        $siteName = \App\Models\Setting::getValue('site_name', 'Italian Pizza Hut');
+        $siteAddress = \App\Models\Setting::getValue('site_address', 'House 14, Road 11, Block D, Gulshan-2, Dhaka');
+        $sitePhone = \App\Models\Setting::getValue('site_phone', '+880 1711-223344');
+        $isPaid = ($order->payment_status === 'paid');
+    @endphp
+    <div class="thermal-receipt-wrap" style="width: 48mm; max-width: 48mm; margin: 0 auto; padding: 1mm 1mm; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000; font-size: 10px; line-height: 1.28; background: #fff; box-sizing: border-box;">
+        <div style="text-align: center; margin-bottom: 5px;">
+            <h2 style="margin: 0; font-size: 14px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #000;">{{ $siteName }}</h2>
+            <div style="font-size: 8.5px; margin-top: 1px; text-transform: uppercase; font-weight: 700; color: #000;">Authentic Italian Oven & Dine</div>
+            <div style="font-size: 8.5px; margin-top: 1px; color: #000; line-height: 1.2;">{{ $siteAddress }}</div>
+            <div style="font-size: 8.5px; font-weight: 700; color: #000;">Hotline: {{ $sitePhone }}</div>
+        </div>
+
+        <div style="border-top: 1.5px dashed #000; margin: 4px 0;"></div>
+
+        <div style="margin: 3px 0; font-size: 9.5px; color: #000;">
+            @if($order->restaurant_table_id && $order->table)
+            <div style="border: 1.5px solid #000; padding: 3px; text-align: center; margin-bottom: 4px; border-radius: 4px; color: #000;">
+                <span style="font-weight: 900; font-size: 12.5px; letter-spacing: 0.5px;">TABLE: {{ $order->table->table_number }}</span>
+            </div>
+            @endif
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                <span>Invoice:</span>
+                <strong style="color: #000; white-space: nowrap;">#{{ $order->order_number }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                <span>Date & Time:</span>
+                <span style="color: #000; white-space: nowrap;">{{ $order->created_at->format('d M Y, h:i A') }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>Type:</span>
+                <span style="text-transform: capitalize; color: #000;">{{ str_replace('_', ' ', $order->order_type) }}</span>
+            </div>
+            @if($order->customer_name && !in_array(strtolower($order->customer_name), ['walk-in', 'dine-in']) && !Str::startsWith($order->customer_name, 'Dine-in ('))
+            <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                <span>Customer:</span>
+                <strong style="color: #000; text-align: right; word-break: break-word;">{{ $order->customer_name }}</strong>
+            </div>
+            @endif
+            @if($order->customer_phone && $order->customer_phone !== 'Walk-in')
+            <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                <span>Phone:</span>
+                <span style="color: #000; white-space: nowrap;">{{ $order->customer_phone }}</span>
+            </div>
+            @endif
+            @if($order->customer_address && $order->order_type === 'delivery')
+            <div style="margin-top: 1px;">
+                <span>Address:</span>
+                <span style="color: #000; word-break: break-word;">{{ $order->customer_address }}</span>
+            </div>
+            @endif
+        </div>
+
+        <div style="border-top: 1px dashed #000; margin: 4px 0;"></div>
+
+        <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 9.5px; margin-bottom: 2px; text-transform: uppercase; color: #000;">
+            <span>Qty & Item</span>
+            <span>Total</span>
+        </div>
+        <div style="border-top: 1px solid #000; margin-bottom: 4px;"></div>
+
+        <div style="margin-bottom: 4px;">
+            @foreach($order->items as $item)
+                @php
+                    $vars = [];
+                    if ($item->size_name && strtolower($item->size_name) !== 'standard') $vars[] = $item->size_name;
+                    if ($item->crust_name && strtolower($item->crust_name) !== 'standard') $vars[] = $item->crust_name;
+                @endphp
+                <div style="margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px dotted #000;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; font-weight: 800; font-size: 10px; color: #000;">
+                        <span style="flex: 1; padding-right: 4px; word-break: break-word;">{{ $item->quantity }}x {{ $item->product_name }}</span>
+                        <span style="white-space: nowrap; margin-left: auto;">৳{{ number_format($item->total_price) }}</span>
+                    </div>
+                    @if(count($vars) > 0)
+                        <div style="font-size: 8.5px; font-weight: 700; color: #000; padding-left: 6px;">{{ implode(' | ', $vars) }}</div>
+                    @endif
+                    @if($item->addons && $item->addons->isNotEmpty())
+                        @foreach($item->addons as $addon)
+                            <div style="font-size: 8.5px; font-weight: 700; color: #000; padding-left: 6px;">+ {{ $addon->add_on_name }} (৳{{ number_format($addon->price) }})</div>
+                        @endforeach
+                    @endif
+                </div>
+            @endforeach
+        </div>
+
+        <div style="border-top: 1px dashed #000; margin: 4px 0;"></div>
+
+        <div style="font-size: 9.5px; color: #000;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                <span>Subtotal:</span>
+                <strong style="color: #000; white-space: nowrap;">৳ {{ number_format($order->subtotal) }}</strong>
+            </div>
+            @if($order->coupon_discount > 0)
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                <span>Coupon ({{ $order->coupon_code }}):</span>
+                <span style="white-space: nowrap;">-৳ {{ number_format($order->coupon_discount) }}</span>
+            </div>
+            @endif
+            @if($order->discount > 0)
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                <span>Discount:</span>
+                <strong style="color: #000; white-space: nowrap;">-৳ {{ number_format($order->discount) }}</strong>
+            </div>
+            @endif
+            @if($order->points_discount > 0)
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                <span>Points Discount:</span>
+                <span style="white-space: nowrap;">-৳ {{ number_format($order->points_discount) }}</span>
+            </div>
+            @endif
+            @if($order->delivery_charge > 0)
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                <span>Delivery:</span>
+                <span style="white-space: nowrap;">৳ {{ number_format($order->delivery_charge) }}</span>
+            </div>
+            @endif
+            @if($order->vat_tax > 0)
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                <span>VAT / Tax:</span>
+                <span style="white-space: nowrap;">৳ {{ number_format($order->vat_tax) }}</span>
+            </div>
+            @endif
+
+            <div style="border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; padding: 3px 0; margin: 4px 0; display: flex; justify-content: space-between; align-items: center; font-weight: 900; color: #000;">
+                <span style="font-size: 11px;">TOTAL:</span>
+                <span style="font-size: 13px; white-space: nowrap;">৳ {{ number_format($order->total_amount) }}</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                <span>Method:</span>
+                <span style="text-transform: uppercase; font-weight: 700; white-space: nowrap;">{{ $order->payment_method ?? 'Cash' }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                <span>Paid Amount:</span>
+                <strong style="color: #000; white-space: nowrap;">৳ {{ number_format($order->paid_amount) }}</strong>
+            </div>
+            @if($order->due_amount > 0)
+            <div style="display: flex; justify-content: space-between; margin-top: 2px; border: 1.5px solid #000; padding: 2px 3px; border-radius: 3px; color: #000;">
+                <span style="font-weight: 900;">DUE BALANCE:</span>
+                <strong style="font-weight: 900; white-space: nowrap;">৳ {{ number_format($order->due_amount) }}</strong>
+            </div>
+            @endif
+            <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                <span>Status:</span>
+                <strong style="text-transform: uppercase; color: #000; white-space: nowrap;">{{ $isPaid ? 'PAID' : ($order->due_amount > 0 && $order->paid_amount > 0 ? 'PARTIAL' : 'DUE') }}</strong>
+            </div>
+        </div>
+
+        <div style="border-top: 1.5px dashed #000; margin: 6px 0 3px 0;"></div>
+        <div style="text-align: center; font-size: 8.5px; color: #000; margin-top: 3px; line-height: 1.25;">
+            <div style="font-weight: 800;">Thank you for dining with Italian Pizza Hut!</div>
+            <div>Please visit again!</div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('admin-scripts')
+<script>
+    const defaultPrintMode = '{{ $isPosOrTakeaway ? "pos-58" : "a4" }}';
+    document.body.classList.add('mode-' + defaultPrintMode);
+
+    function printPosInvoice(size = '58mm') {
+        document.body.classList.remove('mode-a4', 'mode-pos', 'mode-pos-58', 'mode-pos-80');
+        const modeClass = (size === '80mm') ? 'mode-pos-80' : 'mode-pos-58';
+        document.body.classList.add(modeClass);
+        window.print();
+    }
+
+    function printA4Invoice() {
+        document.body.classList.remove('mode-pos', 'mode-pos-58', 'mode-pos-80');
+        document.body.classList.add('mode-a4');
+        window.print();
+    }
+
+    window.onafterprint = function() {
+        document.body.classList.remove('mode-pos', 'mode-pos-58', 'mode-pos-80', 'mode-a4');
+        document.body.classList.add('mode-' + defaultPrintMode);
+    };
+</script>
+@endpush

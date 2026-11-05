@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Point of Sale (POS) & Table Management | Italian Pizza')
+@section('title', 'Point of Sale (POS) & Table Management | Italian Pizza Hut')
 @section('page-title', 'Restaurant Point of Sale (POS)')
 
 @push('admin-styles')
@@ -671,10 +671,10 @@
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 80mm !important;
+            width: 48mm !important;
             max-width: 100% !important;
             margin: 0 !important;
-            padding: 2mm !important;
+            padding: 1mm !important;
             background: #ffffff !important;
             color: #000000 !important;
             border: none !important;
@@ -682,8 +682,8 @@
         }
 
         @page {
-            size: 80mm auto;
-            margin: 0mm;
+            size: auto;
+            margin: 0mm !important;
         }
     }
 </style>
@@ -783,7 +783,49 @@
                 <span id="displaySelectedTableName" style="font-weight:800;">Select a Table</span>
                 <div id="displayTableStatus" style="font-size:0.75rem; color:#64748b; font-weight:normal;">Click a table on the left</div>
             </div>
-            <button type="button" onclick="printPosInvoice()" id="btnPosPrintHeader" style="background:none; border:none; cursor:pointer; font-size:1.15rem; color:#64748b; padding:4px 8px; border-radius:6px;" title="Print Table Invoice"><i class="fa-solid fa-print"></i></button>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <button type="button" onclick="printPosKitchenInvoice()" id="btnPosKitchenHeader" style="background:#e0f2fe; border:none; cursor:pointer; font-size:0.82rem; color:#0369a1; padding:4px 8px; border-radius:6px; font-weight:700;" title="Print Kitchen KOT (রান্নাঘরের টোকেন)"><i class="fa-solid fa-utensils"></i> KOT</button>
+                <button type="button" onclick="printPosInvoice()" id="btnPosPrintHeader" style="background:none; border:none; cursor:pointer; font-size:1.15rem; color:#64748b; padding:4px 8px; border-radius:6px;" title="Print Table Invoice"><i class="fa-solid fa-print"></i></button>
+            </div>
+        </div>
+
+        <!-- POS Customer Selector Bar -->
+        <div class="pos-customer-selector-bar" style="background:#ffffff; border-bottom:1px solid #e2e8f0; padding:8px 12px; position:relative;">
+            <!-- When a customer is selected -->
+            <div id="posSelectedCustomerBox" style="display:none; align-items:center; justify-content:space-between; background:#f0fdf4; border:1.5px solid #86efac; padding:6px 10px; border-radius:8px;">
+                <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                    <div style="width:28px; height:28px; border-radius:50%; background:#16a34a; color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; flex-shrink:0;">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div style="line-height:1.2; overflow:hidden;">
+                        <div id="posCustDisplayName" style="font-weight:800; font-size:0.84rem; color:#15803d; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">Customer Name</div>
+                        <div style="font-size:0.74rem; color:#475569; display:flex; align-items:center; gap:6px; margin-top:2px;">
+                            <span id="posCustDisplayPhone" style="font-weight:600;">017xxxxxxxx</span>
+                            <span id="posCustDisplayDueBadge" style="background:#fee2e2; color:#dc2626; font-size:0.7rem; font-weight:800; padding:1px 6px; border-radius:10px; display:none;">Due: ৳0</span>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="clearSelectedCustomer()" style="background:none; border:none; cursor:pointer; color:#ef4444; font-size:0.9rem; padding:4px 6px;" title="Remove / Change Customer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- When in search / select mode (Default) -->
+            <div id="posSearchCustomerBox" style="position:relative;">
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <div style="position:relative; flex:1;">
+                        <i class="fa-solid fa-phone" style="position:absolute; left:9px; top:50%; transform:translateY(-50%); font-size:0.75rem; color:#94a3b8;"></i>
+                        <input type="text" id="posCustSearchInput" class="form-control" placeholder="Search customer (Phone / Name)..." style="padding:6px 26px 6px 28px; font-size:0.82rem; border-radius:6px; height:34px;" oninput="onCustomerSearchInput(this.value)" autocomplete="off">
+                        <button type="button" id="posClearSearchBtn" onclick="resetCustSearchInput()" style="display:none; position:absolute; right:7px; top:50%; transform:translateY(-50%); background:none; border:none; color:#94a3b8; cursor:pointer; font-size:0.75rem;">✕</button>
+                    </div>
+                    <button type="button" onclick="openQuickAddCustomerModal()" style="background:#0f172a; color:#fff; border:none; border-radius:6px; padding:0 12px; font-size:0.78rem; font-weight:700; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:5px; height:34px;" title="Add New Customer">
+                        <i class="fa-solid fa-user-plus"></i> + Add
+                    </button>
+                </div>
+
+                <!-- Live Search Results Dropdown -->
+                <div id="posCustSearchResults" style="display:none; position:absolute; left:0; right:0; top:100%; background:#fff; border:1px solid #cbd5e1; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.15); z-index:99; max-height:220px; overflow-y:auto; margin-top:4px;"></div>
+            </div>
         </div>
 
         <!-- Order Items on Table -->
@@ -799,8 +841,17 @@
                 <span>Subtotal</span>
                 <strong id="posSubtotal">৳ 0</strong>
             </div>
-            <div class="pos-bill-line">
-                <span>VAT / Tax (5%)</span>
+            <div class="pos-bill-line" id="posDiscountLine" style="display:flex; justify-content:space-between; align-items:center; padding:2px 0;">
+                <span style="display:flex; align-items:center; gap:5px; font-weight:700; color:#dc2626; font-size:0.83rem;">
+                    <i class="fa-solid fa-tag"></i> Discount (ছাড়)
+                </span>
+                <div style="display:flex; align-items:center; gap:4px;">
+                    <span style="color:#dc2626; font-weight:800; font-size:0.85rem;">-৳</span>
+                    <input type="number" id="posOrderDiscountInput" min="0" step="1" value="0" placeholder="0" onchange="onPosOrderDiscountChange(this.value)" onkeyup="if(event.key==='Enter') onPosOrderDiscountChange(this.value)" disabled style="width:75px; text-align:right; padding:3px 6px; font-size:0.88rem; font-weight:800; border:1.5px solid #fca5a5; border-radius:6px; color:#dc2626; background:#fff;" title="Enter discount in Taka and press Enter">
+                </div>
+            </div>
+            <div class="pos-bill-line" id="posVatLine" style="display:none;">
+                <span>VAT / Tax</span>
                 <strong id="posVat">৳ 0</strong>
             </div>
             <div class="pos-bill-total">
@@ -808,14 +859,17 @@
                 <span id="posTotal">৳ 0</span>
             </div>
 
-            <div style="display:flex; gap:10px; margin-top:12px;">
-                <button type="button" class="btn-pos-print" id="btnPosPrintFooter" onclick="printPosInvoice()" disabled style="flex:1; opacity:0.5; cursor:not-allowed;">
-                    <i class="fa-solid fa-print"></i> Print Bill
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:10px;">
+                <button type="button" class="btn-pos-print" id="btnPosKitchen" onclick="printPosKitchenInvoice()" disabled style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:7px; font-weight:700; opacity:0.5; cursor:not-allowed;">
+                    <i class="fa-solid fa-utensils"></i> Kitchen KOT
                 </button>
-                <button type="button" class="btn-pos-pay" id="btnPosComplete" onclick="completeCurrentTableOrder()" disabled style="flex:1.4; opacity:0.5; cursor:not-allowed;">
-                    <i class="fa-solid fa-circle-check"></i> Complete & Free
+                <button type="button" class="btn-pos-print" id="btnPosPrintFooter" onclick="printPosInvoice()" disabled style="opacity:0.5; cursor:not-allowed;">
+                    <i class="fa-solid fa-print"></i> Customer Bill
                 </button>
             </div>
+            <button type="button" class="btn-pos-pay" id="btnPosComplete" onclick="openPosPaymentModal()" disabled style="width:100%; margin-top:8px; opacity:0.5; cursor:not-allowed;">
+                <i class="fa-solid fa-circle-check"></i> Pay / Due & Free Table
+            </button>
         </div>
     </div>
 
@@ -861,12 +915,140 @@
             </div>
         </div>
 
+        <!-- Quantity Selector in Modal -->
+        <div style="margin-bottom: 14px; display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <label style="font-size:0.82rem; font-weight:700; color:#334155; margin:0;">Quantity (পরিমাণ)</label>
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" onclick="stepModalQty(-1)" style="width:28px; height:28px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#334155;">-</button>
+                <input type="number" id="posModalQuantity" value="1" min="1" style="width:52px; text-align:center; padding:4px; border:1px solid #cbd5e1; border-radius:6px; font-weight:800; font-size:0.95rem;" onchange="recalcPosModalPrice()">
+                <button type="button" onclick="stepModalQty(1)" style="width:28px; height:28px; border-radius:6px; border:1px solid #cbd5e1; background:#fff; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#334155;">+</button>
+            </div>
+        </div>
+
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
             <div style="font-size:1.2rem; font-weight:900; color:var(--admin-primary);" id="posModalPriceDisplay">
                 ৳ 0
             </div>
             <button type="button" class="btn-quick-pos" onclick="submitItemToTable()">
                 Add to Table Order <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: POS PAYMENT WITH PAID / DUE / PARTIAL -->
+<div class="pos-modal" id="posPaymentModal">
+    <div class="pos-modal-card" style="max-width:440px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="font-size:1.1rem; font-weight:800; margin:0;"><i class="fa-solid fa-cash-register" style="color:var(--admin-primary);"></i> Payment & Free Table</h3>
+            <button type="button" onclick="closePosPaymentModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.84rem; color:#64748b; margin-bottom:5px;">
+                <span>Subtotal:</span>
+                <strong id="posModalSubtotal" style="color:#1e293b; font-size:0.95rem;">৳ 0</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.84rem; color:#dc2626; margin-bottom:6px;">
+                <span style="font-weight:700;"><i class="fa-solid fa-tag"></i> Discount (ছাড়):</span>
+                <div style="display:flex; align-items:center; gap:4px;">
+                    <span style="font-weight:800; font-size:0.85rem;">-৳</span>
+                    <input type="number" id="posModalDiscountInput" min="0" step="1" value="0" placeholder="0" oninput="onPosModalDiscountChange()" style="width:80px; text-align:right; padding:3px 6px; font-weight:800; font-size:0.92rem; border:1.5px solid #fca5a5; border-radius:6px; color:#dc2626; background:#fff;">
+                </div>
+            </div>
+            <div style="border-top:1px dashed #cbd5e1; padding-top:6px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.88rem; font-weight:800; color:#1e293b;">Net Payable:</span>
+                <span style="font-size:1.6rem; font-weight:900; color:var(--admin-primary);" id="posModalBillTotal">৳ 0</span>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div style="margin-bottom:10px;">
+            <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Customer Name</label>
+            <input type="text" id="posCustomerName" class="form-control" placeholder="e.g. Dine-in / Walk-in / Name" style="padding:7px 10px;">
+        </div>
+
+        <div style="margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label style="font-size:0.78rem; font-weight:700; color:#475569; margin:0;">Customer Phone (Required if Due)</label>
+                <span id="posPaymentCustomerDueBadge" style="font-size:0.72rem; color:#dc2626; font-weight:800; display:none;">Previous Due: ৳0</span>
+            </div>
+            <input type="text" id="posCustomerPhone" class="form-control" placeholder="e.g. 017xxxxxxxx" style="padding:7px 10px;" oninput="onPaymentPhoneInput(this.value)">
+        </div>
+
+        <!-- Payment Option: Full, Partial, Due -->
+        <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:6px;">Payment Option</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                <button type="button" id="payOptionPaid" onclick="selectPayOption('paid')" class="btn btn-sm btn-primary" style="padding:8px 4px; font-weight:700; font-size:0.8rem;">
+                    <i class="fa-solid fa-check"></i> Full Paid
+                </button>
+                <button type="button" id="payOptionPartial" onclick="selectPayOption('partial')" class="btn btn-sm btn-secondary" style="padding:8px 4px; font-weight:700; font-size:0.8rem;">
+                    <i class="fa-solid fa-circle-half-stroke"></i> Partial
+                </button>
+                <button type="button" id="payOptionDue" onclick="selectPayOption('due')" class="btn btn-sm btn-secondary" style="padding:8px 4px; font-weight:700; font-size:0.8rem;">
+                    <i class="fa-solid fa-clock"></i> Full Due (বাকি)
+                </button>
+            </div>
+        </div>
+
+        <!-- Paid Amount & Remaining Due Inputs -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;" id="posAmountsRow">
+            <div>
+                <label style="display:block; font-size:0.75rem; font-weight:700; color:#16a34a; margin-bottom:4px;">Paid Cash (৳)</label>
+                <input type="number" step="1" min="0" id="posPaidAmountInput" class="form-control" style="font-weight:800; font-size:1rem; color:#16a34a;" oninput="onPosPaidAmountChange()">
+            </div>
+            <div>
+                <label style="display:block; font-size:0.75rem; font-weight:700; color:#dc2626; margin-bottom:4px;">Due Balance (৳)</label>
+                <input type="number" id="posDueAmountDisplay" class="form-control" readonly style="font-weight:800; font-size:1rem; color:#dc2626; background:#fef2f2;">
+            </div>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Payment Method (পেমেন্ট মাধ্যম)</label>
+            <select id="posPaymentMethod" class="form-control" style="padding:8px 10px; font-weight:600; font-size:0.88rem;">
+                <option value="cash" selected>💵 Cash (ক্যাশ)</option>
+                <option value="bank">🏦 Bank (ব্যাংক)</option>
+                <option value="card">💳 Card (কার্ড)</option>
+                <option value="bkash">📱 bKash (বিকাশ)</option>
+                <option value="nagad">📱 Nagad (নগদ)</option>
+                <option value="rocket">📱 Rocket (রকেট)</option>
+            </select>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <button type="button" class="btn btn-primary" onclick="submitPosPayment()" style="flex:1; padding:10px; font-weight:800;">
+                <i class="fa-solid fa-circle-check"></i> Complete & Free Table
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="closePosPaymentModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: QUICK ADD CUSTOMER -->
+<div class="pos-modal" id="posQuickAddCustomerModal">
+    <div class="pos-modal-card" style="max-width:380px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <h3 style="font-size:1.05rem; font-weight:800; margin:0; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-user-plus" style="color:var(--admin-primary);"></i> Quick Add Customer
+            </h3>
+            <button type="button" onclick="closeQuickAddCustomerModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#64748b;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Phone Number (মোবাইল নম্বর) *</label>
+            <input type="text" id="quickAddPhone" class="form-control" placeholder="e.g. 017xxxxxxxx" style="padding:7px 10px; font-size:0.85rem;" required>
+        </div>
+
+        <div style="margin-bottom:16px;">
+            <label style="display:block; font-size:0.78rem; font-weight:700; color:#475569; margin-bottom:4px;">Customer Name (কাস্টমারের নাম) *</label>
+            <input type="text" id="quickAddName" class="form-control" placeholder="e.g. Rahim Ahmed" style="padding:7px 10px; font-size:0.85rem;" required>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button type="button" onclick="closeQuickAddCustomerModal()" class="btn btn-secondary btn-sm" style="padding:6px 14px;">Cancel</button>
+            <button type="button" onclick="submitQuickAddCustomer()" class="btn-quick-pos" style="padding:6px 16px; font-size:0.85rem;">
+                <i class="fa-solid fa-check"></i> Save & Select
             </button>
         </div>
     </div>
@@ -879,9 +1061,19 @@
             <div class="thermal-modal-title">
                 <i class="fa-solid fa-receipt" style="color:var(--admin-primary);"></i> Restaurant Invoice
             </div>
-            <button type="button" onclick="closePosReceiptModal()" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#64748b;">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:0.75rem; font-weight:700; color:#64748b;">Paper:</span>
+                <div style="display:inline-flex; background:#e2e8f0; border-radius:6px; padding:2px;">
+                    <button type="button" id="btnReceiptSize58" onclick="setReceiptSize('58mm')" style="padding:4px 10px; font-size:0.75rem; font-weight:800; border:none; border-radius:5px; cursor:pointer; background:var(--admin-primary); color:#fff;">58mm</button>
+                    <button type="button" id="btnReceiptSize80" onclick="setReceiptSize('80mm')" style="padding:4px 10px; font-size:0.75rem; font-weight:800; border:none; border-radius:5px; cursor:pointer; background:transparent; color:#64748b;">80mm</button>
+                </div>
+                <button type="button" onclick="closePosReceiptModal()" style="background:none; border:none; font-size:1.25rem; cursor:pointer; color:#64748b; margin-left:6px;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+        <div style="font-size:0.72rem; color:#475569; background:#f1f5f9; padding:5px 12px; border-bottom:1px solid #e2e8f0; text-align:center;">
+            💡 <strong>Print Tip:</strong> Browser Print ডায়ালগে Margins: <strong>None</strong> দিন যাতে সাইড কেটে না যায়।
         </div>
         <div class="thermal-paper-scroll">
             <div class="thermal-paper" id="thermalPaperReceipt">
@@ -917,7 +1109,7 @@
 
     // Restaurant details for invoice
     window.posSettings = {!! json_encode([
-        'name' => $restaurantName ?? 'ITALIAN PIZZA',
+        'name' => $restaurantName ?? 'ITALIAN PIZZA HUT',
         'address' => $restaurantAddress ?? 'House 14, Road 11, Block D, Gulshan-2, Dhaka',
         'phone' => $restaurantPhone ?? '+880 1711-223344',
     ]) !!};
@@ -1000,6 +1192,7 @@
         document.getElementById('displaySelectedTableName').innerText = tableName;
         document.getElementById('displayTableStatus').innerText = 'Status: ' + status.toUpperCase();
 
+        clearSelectedCustomer(false);
         loadTableOrder(tableId);
     }
 
@@ -1020,6 +1213,25 @@
         const printBtnFooter = document.getElementById('btnPosPrintFooter');
         const printBtnHeader = document.getElementById('btnPosPrintHeader');
 
+        // Sync customer UI with order
+        if (order && order.user) {
+            selectSearchedCustomer({
+                id: order.user.id,
+                name: order.user.name,
+                phone: order.user.phone || '',
+                due_amount: 0
+            }, false);
+        } else if (order && order.customer_phone && order.customer_phone !== 'Walk-in' && !order.customer_phone.startsWith('Walk')) {
+            selectSearchedCustomer({
+                id: order.user_id || null,
+                name: order.customer_name || 'Customer',
+                phone: order.customer_phone,
+                due_amount: 0
+            }, false);
+        } else if (!selectedCustomer) {
+            clearSelectedCustomer(false);
+        }
+
         if (!order || !order.items || order.items.length === 0) {
             container.innerHTML = `
                 <div style="text-align: center; color: #94a3b8; padding: 40px 10px; font-size: 0.85rem;">
@@ -1030,6 +1242,11 @@
             document.getElementById('posSubtotal').innerText = '৳ 0';
             document.getElementById('posVat').innerText = '৳ 0';
             document.getElementById('posTotal').innerText = '৳ 0';
+            const discInput = document.getElementById('posOrderDiscountInput');
+            if (discInput) {
+                discInput.value = 0;
+                discInput.disabled = true;
+            }
 
             if (payBtn) {
                 payBtn.disabled = true;
@@ -1068,20 +1285,25 @@
             }
 
             html += `
-                <div class="pos-order-item-row">
-                    <div>
-                        <strong style="color:#0f172a;">${item.quantity}x ${item.product_name}</strong>
-                        ${variationText ? `<div style="font-size:0.75rem; color:#64748b; margin-top:1px;">${variationText}</div>` : ''}
-                        ${addonsText ? `<div style="font-size:0.72rem; color:#0284c7; margin-top:2px;"><i class="fa-solid fa-plus" style="font-size:0.65rem;"></i> ${addonsText}</div>` : ''}
-                        ${item.special_instructions ? `<div style="font-size:0.7rem; color:#64748b; font-style:italic; margin-top:2px;">Note: ${item.special_instructions}</div>` : ''}
-                    </div>
-                    <div style="text-align:right;">
-                        <strong style="color:var(--admin-primary);">৳ ${Math.round(item.total_price).toLocaleString()}</strong>
-                        <div>
-                            <button type="button" onclick="removeItemFromTable(${item.id})" style="background:none; border:none; color:#ef4444; font-size:0.75rem; cursor:pointer; text-decoration:underline;">
-                                Remove
-                            </button>
+                <div class="pos-order-item-row" style="padding:10px 0; border-bottom:1px solid #f1f5f9;">
+                    <div style="flex:1;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <div style="display:inline-flex; align-items:center; background:#f1f5f9; border-radius:6px; padding:2px;">
+                                <button type="button" onclick="updateItemQty(${item.id}, 'decrease')" style="width:24px; height:24px; border:none; background:#fff; border-radius:4px; font-weight:900; font-size:0.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.06);">-</button>
+                                <span style="font-weight:800; font-size:0.85rem; min-width:24px; text-align:center; color:#0f172a;">${item.quantity}</span>
+                                <button type="button" onclick="updateItemQty(${item.id}, 'increase')" style="width:24px; height:24px; border:none; background:#fff; border-radius:4px; font-weight:900; font-size:0.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.06);">+</button>
+                            </div>
+                            <strong style="color:#0f172a; font-size:0.88rem;">${item.product_name}</strong>
                         </div>
+                        ${variationText ? `<div style="font-size:0.75rem; color:#64748b; margin-top:2px; padding-left:4px;">${variationText}</div>` : ''}
+                        ${addonsText ? `<div style="font-size:0.72rem; color:#0284c7; margin-top:2px; padding-left:4px;"><i class="fa-solid fa-plus" style="font-size:0.65rem;"></i> ${addonsText}</div>` : ''}
+                        ${item.special_instructions ? `<div style="font-size:0.7rem; color:#64748b; font-style:italic; margin-top:2px; padding-left:4px;">Note: ${item.special_instructions}</div>` : ''}
+                    </div>
+                    <div style="text-align:right; margin-left:10px;">
+                        <strong style="color:var(--admin-primary); font-size:0.92rem; display:block;">৳ ${Math.round(item.total_price).toLocaleString()}</strong>
+                        <button type="button" onclick="removeItemFromTable(${item.id})" style="background:none; border:none; color:#ef4444; font-size:0.72rem; cursor:pointer; text-decoration:underline; margin-top:4px;">
+                            Remove
+                        </button>
                     </div>
                 </div>
             `;
@@ -1091,6 +1313,14 @@
         document.getElementById('posSubtotal').innerText = '৳ ' + Math.round(order.subtotal).toLocaleString();
         document.getElementById('posVat').innerText = '৳ ' + Math.round(order.vat_tax).toLocaleString();
         document.getElementById('posTotal').innerText = '৳ ' + Math.round(order.total_amount).toLocaleString();
+        const discInputActive = document.getElementById('posOrderDiscountInput');
+        if (discInputActive) {
+            discInputActive.disabled = false;
+            discInputActive.value = Math.round(order.discount || 0);
+        }
+
+        const btnKitchen = document.getElementById('btnPosKitchen');
+        const btnKitchenHdr = document.getElementById('btnPosKitchenHeader');
 
         if (payBtn) {
             payBtn.disabled = false;
@@ -1107,6 +1337,40 @@
             printBtnHeader.style.opacity = '1';
             printBtnHeader.style.cursor = 'pointer';
         }
+        if (btnKitchen) {
+            btnKitchen.disabled = false;
+            btnKitchen.style.opacity = '1';
+            btnKitchen.style.cursor = 'pointer';
+        }
+        if (btnKitchenHdr) {
+            btnKitchenHdr.disabled = false;
+            btnKitchenHdr.style.opacity = '1';
+            btnKitchenHdr.style.cursor = 'pointer';
+        }
+    }
+
+    function updateItemQty(itemId, action) {
+        fetch(`/admin/pos/item/${itemId}/update-qty`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ action: action })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                renderTableOrder(data.order);
+                if (!data.order) {
+                    const tblBtn = document.getElementById('table-btn-' + activeTableId);
+                    if (tblBtn) {
+                        tblBtn.className = 'pos-table-btn available selected';
+                    }
+                }
+            }
+        });
     }
 
     // Open Modal to Customize Item for Table
@@ -1146,12 +1410,22 @@
                     document.getElementById('posCrustGroup').style.display = 'none';
                 }
 
-                // Reset checkboxes
+                // Reset checkboxes & quantity
                 document.querySelectorAll('.pos-chk-addon').forEach(chk => chk.checked = false);
+                const qInput = document.getElementById('posModalQuantity');
+                if (qInput) qInput.value = 1;
 
                 recalcPosModalPrice();
                 document.getElementById('posAddModal').classList.add('open');
             });
+    }
+
+    function stepModalQty(delta) {
+        const input = document.getElementById('posModalQuantity');
+        let q = (parseInt(input.value) || 1) + delta;
+        if (q < 1) q = 1;
+        input.value = q;
+        recalcPosModalPrice();
     }
 
     function closePosModal() {
@@ -1161,6 +1435,7 @@
     function recalcPosModalPrice() {
         const sizeSelect = document.getElementById('posModalSizeSelect');
         const crustSelect = document.getElementById('posModalCrustSelect');
+        const qty = parseInt(document.getElementById('posModalQuantity')?.value) || 1;
 
         modalUnitPrice = parseFloat(sizeSelect.options[sizeSelect.selectedIndex]?.dataset.price || currentModalProd.base_price);
         modalCrustExtra = parseFloat(crustSelect.options[crustSelect.selectedIndex]?.dataset.extra || 0);
@@ -1170,8 +1445,8 @@
             addonsExtra += parseFloat(chk.dataset.price || 0);
         });
 
-        const total = modalUnitPrice + modalCrustExtra + addonsExtra;
-        document.getElementById('posModalPriceDisplay').innerText = '৳ ' + Math.round(total).toLocaleString();
+        const total = (modalUnitPrice + modalCrustExtra + addonsExtra) * qty;
+        document.getElementById('posModalPriceDisplay').innerText = '৳ ' + Math.round(total).toLocaleString() + (qty > 1 ? ` (${qty}x)` : '');
     }
 
     // Submit customized item to table order
@@ -1180,6 +1455,7 @@
 
         const sizeSelect = document.getElementById('posModalSizeSelect');
         const crustSelect = document.getElementById('posModalCrustSelect');
+        const qty = parseInt(document.getElementById('posModalQuantity')?.value) || 1;
 
         const selectedAddonIds = [];
         document.querySelectorAll('.pos-chk-addon:checked').forEach(chk => {
@@ -1193,7 +1469,10 @@
             crust_name: (crustSelect.options[crustSelect.selectedIndex]?.dataset.name || '').trim(),
             crust_extra: modalCrustExtra,
             addons: selectedAddonIds,
-            quantity: 1,
+            quantity: qty,
+            user_id: selectedCustomer ? selectedCustomer.id : null,
+            customer_name: selectedCustomer ? selectedCustomer.name : null,
+            customer_phone: selectedCustomer ? selectedCustomer.phone : null,
             _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         };
 
@@ -1245,30 +1524,399 @@
         });
     }
 
-    // Complete payment & free table
-    function completeCurrentTableOrder() {
-        if (!activeTableId) return;
-        if (!confirm(`Mark payment complete for ${activeTableName} and set table as Available?`)) return;
+    // ==========================================
+    // POS CUSTOMER SEARCH & QUICK ADD LOGIC
+    // ==========================================
+    let selectedCustomer = null;
+    let custSearchTimer = null;
 
-        fetch(`/admin/pos/table/${activeTableId}/complete`, {
+    function onCustomerSearchInput(query) {
+        clearTimeout(custSearchTimer);
+        const q = (query || '').trim();
+        const clearBtn = document.getElementById('posClearSearchBtn');
+        const resultsBox = document.getElementById('posCustSearchResults');
+
+        if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+        if (!q || q.length < 2) {
+            if (resultsBox) {
+                resultsBox.style.display = 'none';
+                resultsBox.innerHTML = '';
+            }
+            return;
+        }
+
+        custSearchTimer = setTimeout(() => {
+            fetch('/admin/pos/customers/search?q=' + encodeURIComponent(q))
+                .then(res => res.json())
+                .then(customers => {
+                    let html = '';
+                    if (customers && customers.length > 0) {
+                        customers.forEach(c => {
+                            const dueBadge = c.due_amount > 0 
+                                ? `<span style="background:#fee2e2; color:#dc2626; font-size:0.72rem; font-weight:800; padding:1px 6px; border-radius:10px;">Due: ৳${Math.round(c.due_amount)}</span>` 
+                                : '';
+                            html += `
+                                <div onclick='selectSearchedCustomer(${JSON.stringify(c)})' style="padding:8px 12px; border-bottom:1px solid #f1f5f9; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+                                    <div style="line-height:1.2;">
+                                        <strong style="color:#0f172a; font-size:0.84rem;">${c.name}</strong>
+                                        <div style="color:#64748b; font-size:0.75rem;">${c.phone}</div>
+                                    </div>
+                                    ${dueBadge}
+                                </div>
+                            `;
+                        });
+                        html += `
+                            <div style="padding:6px 12px; background:#f8fafc; text-align:center; border-top:1px solid #e2e8f0;">
+                                <button type="button" onclick="openQuickAddWithPhone('${q}')" style="background:none; border:none; color:var(--admin-primary); font-weight:700; font-size:0.75rem; cursor:pointer;">
+                                    + Add "${q}" as New Customer
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        html = `
+                            <div style="padding:14px 12px; text-align:center; font-size:0.8rem; color:#64748b;">
+                                <div>No customer found with "<strong>${q}</strong>"</div>
+                                <button type="button" onclick="openQuickAddWithPhone('${q}')" style="margin-top:6px; background:var(--admin-primary); color:#fff; border:none; border-radius:6px; padding:5px 12px; font-weight:700; font-size:0.75rem; cursor:pointer;">
+                                    <i class="fa-solid fa-user-plus"></i> + Add as New Customer
+                                </button>
+                            </div>
+                        `;
+                    }
+                    resultsBox.innerHTML = html;
+                    resultsBox.style.display = 'block';
+                });
+        }, 250);
+    }
+
+    function resetCustSearchInput() {
+        const inp = document.getElementById('posCustSearchInput');
+        if (inp) inp.value = '';
+        const clr = document.getElementById('posClearSearchBtn');
+        if (clr) clr.style.display = 'none';
+        const res = document.getElementById('posCustSearchResults');
+        if (res) {
+            res.style.display = 'none';
+            res.innerHTML = '';
+        }
+    }
+
+    function selectSearchedCustomer(c, syncBackend = true) {
+        selectedCustomer = c;
+        resetCustSearchInput();
+
+        document.getElementById('posSearchCustomerBox').style.display = 'none';
+        const selBox = document.getElementById('posSelectedCustomerBox');
+        selBox.style.display = 'flex';
+        document.getElementById('posCustDisplayName').innerText = c.name;
+        document.getElementById('posCustDisplayPhone').innerText = c.phone || 'No phone';
+
+        const dueBadge = document.getElementById('posCustDisplayDueBadge');
+        if (c.due_amount > 0) {
+            dueBadge.innerText = 'Due: ৳' + Math.round(c.due_amount).toLocaleString();
+            dueBadge.style.display = 'inline-block';
+        } else {
+            dueBadge.style.display = 'none';
+        }
+
+        // Sync with active table order if available
+        if (syncBackend && activeTableId && currentTableOrder) {
+            fetch(`/admin/pos/table/${activeTableId}/customer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: c.id,
+                    customer_name: c.name,
+                    customer_phone: c.phone
+                })
+            });
+        }
+    }
+
+    function clearSelectedCustomer(syncBackend = true) {
+        selectedCustomer = null;
+        document.getElementById('posSelectedCustomerBox').style.display = 'none';
+        document.getElementById('posSearchCustomerBox').style.display = 'block';
+        resetCustSearchInput();
+
+        if (syncBackend && activeTableId && currentTableOrder) {
+            fetch(`/admin/pos/table/${activeTableId}/customer`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: null,
+                    customer_name: `Dine-in (${activeTableName})`,
+                    customer_phone: 'Walk-in'
+                })
+            });
+        }
+    }
+
+    function openQuickAddCustomerModal() {
+        document.getElementById('quickAddPhone').value = '';
+        document.getElementById('quickAddName').value = '';
+        document.getElementById('posQuickAddCustomerModal').classList.add('open');
+        document.getElementById('quickAddPhone').focus();
+    }
+
+    function openQuickAddWithPhone(phone) {
+        resetCustSearchInput();
+        document.getElementById('quickAddPhone').value = phone;
+        document.getElementById('quickAddName').value = '';
+        document.getElementById('posQuickAddCustomerModal').classList.add('open');
+        document.getElementById('quickAddName').focus();
+    }
+
+    function closeQuickAddCustomerModal() {
+        document.getElementById('posQuickAddCustomerModal').classList.remove('open');
+    }
+
+    function submitQuickAddCustomer() {
+        const phone = document.getElementById('quickAddPhone').value.trim();
+        const name = document.getElementById('quickAddName').value.trim();
+
+        if (!phone) {
+            alert('Please enter a phone number.');
+            document.getElementById('quickAddPhone').focus();
+            return;
+        }
+        if (!name) {
+            alert('Please enter customer name.');
+            document.getElementById('quickAddName').focus();
+            return;
+        }
+
+        fetch('/admin/pos/customers/quick-add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ payment_method: 'cash' })
+            body: JSON.stringify({ name: name, phone: phone })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.customer) {
+                closeQuickAddCustomerModal();
+                selectSearchedCustomer(data.customer, true);
+            } else {
+                alert(data.message || 'Error saving customer.');
+            }
+        })
+        .catch(err => {
+            alert('Failed to add customer. Please try again.');
+        });
+    }
+
+    function onPaymentPhoneInput(val) {
+        const p = val.trim();
+        const badge = document.getElementById('posPaymentCustomerDueBadge');
+        if (p.length >= 6) {
+            fetch('/admin/pos/customers/search?q=' + encodeURIComponent(p))
+                .then(res => res.json())
+                .then(customers => {
+                    const match = customers.find(c => c.phone === p);
+                    if (match) {
+                        if (!document.getElementById('posCustomerName').value || document.getElementById('posCustomerName').value.startsWith('Dine-in (')) {
+                            document.getElementById('posCustomerName').value = match.name;
+                        }
+                        selectedCustomer = match;
+                        if (match.due_amount > 0 && badge) {
+                            badge.innerText = 'Previous Due: ৳' + Math.round(match.due_amount).toLocaleString();
+                            badge.style.display = 'inline-block';
+                        } else if (badge) {
+                            badge.style.display = 'none';
+                        }
+                    } else if (badge) {
+                        badge.style.display = 'none';
+                    }
+                });
+        } else if (badge) {
+            badge.style.display = 'none';
+        }
+    }
+
+    // POS Payment Modal Logic
+    let currentSelectedPayOption = 'paid';
+
+    function openPosPaymentModal() {
+        if (!activeTableId || !currentTableOrder) {
+            alert('Please select an active table first.');
+            return;
+        }
+
+        const subtotal = Math.round(currentTableOrder.subtotal || 0);
+        const discount = Math.round(currentTableOrder.discount || 0);
+        const billTotal = Math.max(0, subtotal - discount);
+
+        const modalSubtotalEl = document.getElementById('posModalSubtotal');
+        if (modalSubtotalEl) modalSubtotalEl.innerText = '৳ ' + subtotal.toLocaleString();
+        const modalDiscInput = document.getElementById('posModalDiscountInput');
+        if (modalDiscInput) modalDiscInput.value = discount;
+
+        document.getElementById('posModalBillTotal').innerText = '৳ ' + billTotal.toLocaleString();
+        
+        const badge = document.getElementById('posPaymentCustomerDueBadge');
+        if (selectedCustomer) {
+            document.getElementById('posCustomerName').value = selectedCustomer.name;
+            document.getElementById('posCustomerPhone').value = selectedCustomer.phone;
+            if (selectedCustomer.due_amount > 0 && badge) {
+                badge.innerText = 'Previous Due: ৳' + Math.round(selectedCustomer.due_amount).toLocaleString();
+                badge.style.display = 'inline-block';
+            } else if (badge) {
+                badge.style.display = 'none';
+            }
+        } else {
+            document.getElementById('posCustomerName').value = currentTableOrder.customer_name || `Dine-in (${activeTableName})`;
+            document.getElementById('posCustomerPhone').value = (currentTableOrder.customer_phone === 'Walk-in') ? '' : (currentTableOrder.customer_phone || '');
+            if (badge) badge.style.display = 'none';
+        }
+
+        selectPayOption('paid');
+        document.getElementById('posPaymentModal').classList.add('open');
+    }
+
+    function onPosModalDiscountChange() {
+        const subtotal = Math.round(currentTableOrder?.subtotal || 0);
+        const discount = Math.max(0, parseFloat(document.getElementById('posModalDiscountInput').value) || 0);
+        const billTotal = Math.max(0, subtotal - discount);
+
+        document.getElementById('posModalBillTotal').innerText = '৳ ' + billTotal.toLocaleString();
+
+        if (currentTableOrder) {
+            currentTableOrder.discount = discount;
+            currentTableOrder.total_amount = billTotal;
+            const sidebarDiscInput = document.getElementById('posOrderDiscountInput');
+            if (sidebarDiscInput) sidebarDiscInput.value = discount;
+            document.getElementById('posTotal').innerText = '৳ ' + billTotal.toLocaleString();
+        }
+
+        selectPayOption(currentSelectedPayOption);
+    }
+
+    function onPosOrderDiscountChange(val) {
+        if (!activeTableId || !currentTableOrder) return;
+        const discount = Math.max(0, parseFloat(val) || 0);
+
+        fetch(`/admin/pos/table/${activeTableId}/discount`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ discount: discount })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.order) {
+                currentTableOrder = data.order;
+                renderTableOrder(data.order);
+            }
+        })
+        .catch(err => console.error(err));
+    }
+
+    function closePosPaymentModal() {
+        document.getElementById('posPaymentModal').classList.remove('open');
+    }
+
+    function selectPayOption(opt) {
+        currentSelectedPayOption = opt;
+        const billTotal = Math.round(currentTableOrder?.total_amount || 0);
+
+        const btnPaid = document.getElementById('payOptionPaid');
+        const btnPartial = document.getElementById('payOptionPartial');
+        const btnDue = document.getElementById('payOptionDue');
+
+        btnPaid.className = 'btn btn-sm ' + (opt === 'paid' ? 'btn-primary' : 'btn-secondary');
+        btnPartial.className = 'btn btn-sm ' + (opt === 'partial' ? 'btn-primary' : 'btn-secondary');
+        btnDue.className = 'btn btn-sm ' + (opt === 'due' ? 'btn-primary' : 'btn-secondary');
+
+        const paidInput = document.getElementById('posPaidAmountInput');
+        const dueDisplay = document.getElementById('posDueAmountDisplay');
+
+        if (opt === 'paid') {
+            paidInput.value = billTotal;
+            dueDisplay.value = 0;
+            paidInput.readOnly = true;
+        } else if (opt === 'due') {
+            paidInput.value = 0;
+            dueDisplay.value = billTotal;
+            paidInput.readOnly = true;
+        } else if (opt === 'partial') {
+            paidInput.readOnly = false;
+            if (parseFloat(paidInput.value) >= billTotal || parseFloat(paidInput.value) <= 0) {
+                paidInput.value = Math.round(billTotal / 2);
+            }
+            onPosPaidAmountChange();
+            paidInput.focus();
+        }
+    }
+
+    function onPosPaidAmountChange() {
+        const billTotal = Math.round(currentTableOrder?.total_amount || 0);
+        const paid = Math.max(0, parseFloat(document.getElementById('posPaidAmountInput').value) || 0);
+        const due = Math.max(0, billTotal - paid);
+        document.getElementById('posDueAmountDisplay').value = due;
+    }
+
+    function submitPosPayment() {
+        if (!activeTableId) return;
+
+        const custName = document.getElementById('posCustomerName').value.trim();
+        const custPhone = document.getElementById('posCustomerPhone').value.trim();
+        const payMethod = document.getElementById('posPaymentMethod').value;
+        const paidAmount = parseFloat(document.getElementById('posPaidAmountInput').value) || 0;
+        const dueAmount = parseFloat(document.getElementById('posDueAmountDisplay').value) || 0;
+        const discountAmount = parseFloat(document.getElementById('posModalDiscountInput')?.value) || 0;
+
+        if (dueAmount > 0 && !custPhone) {
+            alert('Customer Phone is REQUIRED for Due / Partial orders so it can be tracked in Due Customers!');
+            document.getElementById('posCustomerPhone').focus();
+            return;
+        }
+
+        const payload = {
+            payment_status: currentSelectedPayOption,
+            payment_method: payMethod,
+            paid_amount: paidAmount,
+            due_amount: dueAmount,
+            discount: discountAmount,
+            customer_name: custName,
+            customer_phone: custPhone,
+            user_id: selectedCustomer ? selectedCustomer.id : null,
+            _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        };
+
+        fetch(`/admin/pos/table/${activeTableId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': payload._token,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                closePosPaymentModal();
                 const finishedOrder = data.order || currentTableOrder;
                 const tblName = activeTableName;
 
-                if (confirm(`✓ Payment completed for ${tblName}!\n\nDo you want to print the restaurant invoice now?`)) {
+                if (confirm(`✓ Payment recorded for ${tblName}!\nPaid: ৳${paidAmount} | Due: ৳${dueAmount}\n\nPrint customer invoice now?`)) {
                     reloadAfterPrint = true;
                     if (finishedOrder) {
-                        finishedOrder.payment_status = 'paid';
                         printPosInvoice(finishedOrder, tblName);
                     } else {
                         location.reload();
@@ -1280,11 +1928,146 @@
         });
     }
 
-    // Generate Restaurant Thermal Invoice HTML
-    function generateReceiptHtml(order, tableNumber) {
-        const restName = window.posSettings?.name || 'ITALIAN PIZZA';
+    // Receipt Paper Size Preference ('58mm' or '80mm', default 58mm)
+    let currentReceiptSize = localStorage.getItem('pos_receipt_size') || '58mm';
+
+    function setReceiptSize(size) {
+        currentReceiptSize = size;
+        try {
+            localStorage.setItem('pos_receipt_size', size);
+        } catch(e){}
+        updateReceiptSizeUI();
+        if (currentTableOrder) {
+            const receiptHtml = generateReceiptHtml(currentTableOrder, activeTableName, currentReceiptSize);
+            const modalContainer = document.getElementById('thermalPaperReceipt');
+            if (modalContainer) modalContainer.innerHTML = receiptHtml;
+            const directContainer = document.getElementById('posDirectPrintContainer');
+            if (directContainer) directContainer.innerHTML = receiptHtml;
+        }
+    }
+
+    function updateReceiptSizeUI() {
+        const btn58 = document.getElementById('btnReceiptSize58');
+        const btn80 = document.getElementById('btnReceiptSize80');
+        if (btn58 && btn80) {
+            if (currentReceiptSize === '80mm') {
+                btn80.style.background = 'var(--admin-primary)';
+                btn80.style.color = '#fff';
+                btn58.style.background = 'transparent';
+                btn58.style.color = '#64748b';
+            } else {
+                btn58.style.background = 'var(--admin-primary)';
+                btn58.style.color = '#fff';
+                btn80.style.background = 'transparent';
+                btn80.style.color = '#64748b';
+            }
+        }
+    }
+
+    // Kitchen Order Ticket (KOT)
+    function generateKitchenReceiptHtml(order, tableNumber, size = currentReceiptSize) {
+        let orderDate = '';
+        if (order.created_at) {
+            const d = new Date(order.created_at);
+            orderDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' +
+                        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        } else {
+            const d = new Date();
+            orderDate = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ', ' +
+                        d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+
+        const is80 = (size === '80mm');
+        const wrapWidth = is80 ? '72mm' : '48mm';
+        const fontSize = is80 ? '11px' : '9.5px';
+        const itemFont = is80 ? '16px' : '13px';
+
+        let itemsHtml = '';
+        (order.items || []).forEach(item => {
+            let variationParts = [];
+            if (item.size_name && item.size_name.toLowerCase() !== 'standard') {
+                variationParts.push('SIZE: ' + item.size_name.toUpperCase());
+            }
+            if (item.crust_name && item.crust_name.toLowerCase() !== 'standard') {
+                variationParts.push('CRUST: ' + item.crust_name.toUpperCase());
+            }
+            let variationLine = variationParts.join(' | ');
+
+            let addonsHtml = '';
+            if (item.addons && item.addons.length > 0) {
+                addonsHtml = item.addons.map(a => `<div style="font-size: ${is80 ? '12px' : '10px'}; font-weight: 800; color: #000; padding-left: 8px;">+ ${a.add_on_name.toUpperCase()}</div>`).join('');
+            }
+
+            itemsHtml += `
+                <div style="margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1.5px dashed #000;">
+                    <div style="font-size: ${itemFont}; font-weight: 900; line-height: 1.2; word-break: break-word;">
+                        ${item.quantity}x ${item.product_name}
+                    </div>
+                    ${variationLine ? `<div style="font-size: ${is80 ? '11px' : '9.5px'}; font-weight: bold; margin-top: 2px; padding-left: 8px; color:#111;">${variationLine}</div>` : ''}
+                    ${addonsHtml}
+                    ${item.special_instructions ? `<div style="font-size: ${is80 ? '11px' : '9px'}; font-weight: 900; background: #eee; padding: 3px; margin-top: 3px;">*** NOTE: ${item.special_instructions} ***</div>` : ''}
+                </div>
+            `;
+        });
+
+        const resolvedTable = tableNumber || (order.table ? order.table.table_number : activeTableName) || 'Table';
+
+        return `
+            <div class="thermal-receipt-wrap" style="width: ${wrapWidth}; max-width: ${wrapWidth}; margin: 0 auto; padding: ${is80 ? '2mm 2mm' : '1mm 1mm'}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000; font-size: ${fontSize}; line-height: 1.28; background: #fff; box-sizing: border-box;">
+                <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 5px;">
+                    <h2 style="margin: 0; font-size: ${is80 ? '16px' : '14px'}; font-weight: 900; letter-spacing: 0.5px; color: #000;">** KITCHEN KOT **</h2>
+                    <div style="font-size: 8.5px; margin-top: 1px; text-transform: uppercase; font-weight: 700; color: #000;">Chef Order Token</div>
+                </div>
+
+                <div style="border: 2px solid #000; text-align: center; padding: 3px; margin-bottom: 5px; border-radius: 4px; color: #000;">
+                    <span style="font-size: ${is80 ? '12px' : '10.5px'}; font-weight: 800;">TABLE:</span>
+                    <span style="font-size: ${is80 ? '17px' : '14px'}; font-weight: 900; margin-left: 4px;">${resolvedTable}</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: ${is80 ? '10.5px' : '9px'}; margin-bottom: 3px; color: #000;">
+                    <span>Token: <strong style="color: #000; white-space: nowrap;">#${order.order_number || 'POS'}</strong></span>
+                    <span style="white-space: nowrap;">${orderDate}</span>
+                </div>
+
+                <div style="border-top: 1.5px solid #000; margin: 4px 0;"></div>
+
+                <div style="margin-bottom: 4px;">
+                    ${itemsHtml}
+                </div>
+
+                <div style="text-align: center; border-top: 1.5px solid #000; padding-top: 4px; font-size: ${is80 ? '10px' : '8.5px'}; font-weight: 900; color: #000;">
+                    *** PREPARE FRESH & HOT ***
+                </div>
+            </div>
+        `;
+    }
+
+    function printPosKitchenInvoice() {
+        const orderToPrint = currentTableOrder;
+        const tableNameToPrint = activeTableName;
+
+        if (!orderToPrint || !orderToPrint.items || orderToPrint.items.length === 0) {
+            alert('Please select a table with active order items to print kitchen token.');
+            return;
+        }
+
+        const kitchenHtml = generateKitchenReceiptHtml(orderToPrint, tableNameToPrint, currentReceiptSize);
+
+        const directContainer = document.getElementById('posDirectPrintContainer');
+        if (directContainer) directContainer.innerHTML = kitchenHtml;
+
+        executePrint();
+    }
+
+    // Generate Restaurant Thermal Invoice HTML (58mm default / 80mm adaptive, safe widths)
+    function generateReceiptHtml(order, tableNumber, size = currentReceiptSize) {
+        const restName = window.posSettings?.name || 'ITALIAN PIZZA HUT';
         const restAddress = window.posSettings?.address || 'House 14, Road 11, Block D, Gulshan-2, Dhaka';
         const restPhone = window.posSettings?.phone || '+880 1711-223344';
+
+        const is80 = (size === '80mm');
+        const wrapWidth = is80 ? '72mm' : '48mm';
+        const fontSize = is80 ? '11px' : '9.5px';
 
         let orderDate = '';
         if (order.created_at) {
@@ -1312,18 +2095,18 @@
             // Add-ons list
             let addonsHtml = '';
             if (item.addons && item.addons.length > 0) {
-                addonsHtml = item.addons.map(a => `<div style="font-size: 11px; color: #333; margin-top: 1px; padding-left: 10px;">+ ${a.add_on_name} (৳${Math.round(a.price)})</div>`).join('');
+                addonsHtml = item.addons.map(a => `<div style="font-size: ${is80 ? '9.5px' : '8.5px'}; font-weight: 700; color: #000; margin-top: 1px; padding-left: 6px;">+ ${a.add_on_name} (৳${Math.round(a.price)})</div>`).join('');
             }
 
             itemsHtml += `
-                <div style="margin-bottom: 7px; padding-bottom: 5px; border-bottom: 1px dotted #ccc;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; font-weight: bold; font-size: 13px;">
-                        <span style="flex: 1; padding-right: 8px;">${item.quantity}x ${item.product_name}</span>
-                        <span style="white-space: nowrap;">৳${Math.round(item.total_price).toLocaleString()}</span>
+                <div style="margin-bottom: 4px; padding-bottom: 3px; border-bottom: 1px dotted #000;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; font-weight: 800; font-size: ${is80 ? '11px' : '10px'}; color: #000;">
+                        <span style="flex: 1; padding-right: 4px; word-break: break-word;">${item.quantity}x ${item.product_name}</span>
+                        <span style="white-space: nowrap; margin-left: auto;">৳${Math.round(item.total_price).toLocaleString()}</span>
                     </div>
-                    ${variationLine ? `<div style="font-size: 11px; color: #333; margin-top: 1px; padding-left: 10px;">${variationLine}</div>` : ''}
+                    ${variationLine ? `<div style="font-size: ${is80 ? '9.5px' : '8.5px'}; font-weight: 700; color: #000; margin-top: 1px; padding-left: 6px;">${variationLine}</div>` : ''}
                     ${addonsHtml}
-                    ${item.special_instructions ? `<div style="font-size: 10px; font-style: italic; color: #555; padding-left: 10px;">Note: ${item.special_instructions}</div>` : ''}
+                    ${item.special_instructions ? `<div style="font-size: ${is80 ? '9px' : '8px'}; font-weight: 700; color: #000; padding-left: 6px;">Note: ${item.special_instructions}</div>` : ''}
                 </div>
             `;
         });
@@ -1335,88 +2118,111 @@
         const resolvedTable = tableNumber || (order.table ? order.table.table_number : activeTableName) || 'Table';
 
         return `
-            <div style="width: 100%; max-width: 300px; margin: 0 auto; padding: 12px 10px; font-family: 'Courier New', Courier, monospace; color: #000; font-size: 12px; line-height: 1.35; background: #fff; box-sizing: border-box;">
+            <div class="thermal-receipt-wrap" style="width: ${wrapWidth}; max-width: ${wrapWidth}; margin: 0 auto; padding: ${is80 ? '2mm 2mm' : '1mm 1mm'}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #000; font-size: ${fontSize}; line-height: 1.28; background: #fff; box-sizing: border-box;">
                 
                 <!-- RESTAURANT BRANDING -->
-                <div style="text-align: center; margin-bottom: 8px;">
-                    <h2 style="margin: 0; font-size: 18px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase;">${restName}</h2>
-                    <div style="font-size: 10.5px; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px;">Authentic Italian Oven & Dine</div>
-                    <div style="font-size: 10px; margin-top: 2px; color: #333;">${restAddress}</div>
-                    <div style="font-size: 10px; color: #333;">Hotline: ${restPhone}</div>
+                <div style="text-align: center; margin-bottom: 5px;">
+                    <h2 style="margin: 0; font-size: ${is80 ? '15px' : '13.5px'}; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; color: #000;">${restName}</h2>
+                    <div style="font-size: ${is80 ? '9px' : '8px'}; margin-top: 1px; text-transform: uppercase; font-weight: 700; color: #000;">Authentic Italian Oven & Dine</div>
+                    <div style="font-size: ${is80 ? '9px' : '8px'}; margin-top: 1px; color: #000; line-height: 1.2;">${restAddress}</div>
+                    <div style="font-size: ${is80 ? '9px' : '8px'}; font-weight: 700; color: #000;">Hotline: ${restPhone}</div>
                 </div>
 
-                <div style="border-top: 2px dashed #000; margin: 8px 0;"></div>
+                <div style="border-top: 1.5px dashed #000; margin: 4px 0;"></div>
 
                 <!-- TABLE NUMBER & INVOICE DETAILS -->
-                <div style="margin: 6px 0; font-size: 11.5px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; background: #000; color: #fff; padding: 4px 8px; border-radius: 4px;">
-                        <span style="font-weight: 900; font-size: 14px; letter-spacing: 0.5px;">TABLE:</span>
-                        <span style="font-weight: 900; font-size: 15px; letter-spacing: 0.5px;">${resolvedTable}</span>
+                <div style="margin: 3px 0; font-size: ${fontSize}; color: #000;">
+                    <div style="border: 1.5px solid #000; padding: 3px; text-align: center; margin-bottom: 4px; border-radius: 4px; color: #000;">
+                        <span style="font-weight: 900; font-size: ${is80 ? '13px' : '12px'}; letter-spacing: 0.5px;">TABLE: ${resolvedTable}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
                         <span>Invoice No:</span>
-                        <strong>#${order.order_number || 'POS-INVOICE'}</strong>
+                        <strong style="color: #000; white-space: nowrap;">#${order.order_number || 'POS-INVOICE'}</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
                         <span>Date & Time:</span>
-                        <span>${orderDate}</span>
+                        <span style="color: #000; white-space: nowrap;">${orderDate}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
                         <span>Order Type:</span>
-                        <span>Dine-In (Table Bill)</span>
+                        <span style="color: #000;">Dine-In (Table Bill)</span>
                     </div>
+                    ${(order.customer_name && order.customer_name !== 'Walk-in' && !order.customer_name.startsWith('Dine-in (')) ? `
+                    <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                        <span>Customer:</span>
+                        <strong style="color: #000; text-align: right; word-break: break-word;">${order.customer_name}</strong>
+                    </div>` : ''}
+                    ${(order.customer_phone && order.customer_phone !== 'Walk-in') ? `
+                    <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                        <span>Phone:</span>
+                        <span style="color: #000; white-space: nowrap;">${order.customer_phone}</span>
+                    </div>` : ''}
                 </div>
 
-                <div style="border-top: 1px dashed #000; margin: 8px 0;"></div>
+                <div style="border-top: 1px dashed #000; margin: 4px 0;"></div>
 
                 <!-- TABLE ITEMS HEADER -->
-                <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 11.5px; margin-bottom: 4px; text-transform: uppercase;">
-                    <span>Qty Description</span>
+                <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: ${is80 ? '10px' : '9px'}; margin-bottom: 2px; text-transform: uppercase; color: #000;">
+                    <span>Qty & Item</span>
                     <span>Total</span>
                 </div>
 
-                <div style="border-top: 1px solid #000; margin-bottom: 6px;"></div>
+                <div style="border-top: 1px solid #000; margin-bottom: 4px;"></div>
 
                 <!-- ITEMS LIST -->
-                <div style="margin-bottom: 6px;">
+                <div style="margin-bottom: 4px;">
                     ${itemsHtml}
                 </div>
 
-                <div style="border-top: 1px dashed #000; margin: 8px 0;"></div>
+                <div style="border-top: 1px dashed #000; margin: 4px 0;"></div>
 
                 <!-- BILL TOTALS -->
-                <div style="font-size: 11.5px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                <div style="font-size: ${fontSize}; color: #000;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
                         <span>Subtotal:</span>
-                        <strong>৳ ${subtotal}</strong>
+                        <strong style="color: #000; white-space: nowrap;">৳ ${subtotal}</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span>VAT / Tax (5%):</span>
-                        <span>৳ ${vat}</span>
+                    ${(order.discount > 0) ? `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                        <span>Discount:</span>
+                        <strong style="color: #000; white-space: nowrap;">-৳ ${Math.round(order.discount).toLocaleString()}</strong>
+                    </div>` : ''}
+                    ${(order.vat_tax > 0) ? `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1px;">
+                        <span>VAT / Tax:</span>
+                        <span style="white-space: nowrap;">৳ ${vat}</span>
+                    </div>` : ''}
+
+                    <div style="border-top: 1.5px solid #000; border-bottom: 1.5px solid #000; padding: 3px 0; margin: 4px 0; display: flex; justify-content: space-between; align-items: center; color: #000;">
+                        <span style="font-weight: 900; font-size: ${is80 ? '12px' : '11px'};">TOTAL:</span>
+                        <span style="font-weight: 900; font-size: ${is80 ? '14px' : '13px'}; white-space: nowrap;">৳ ${total}</span>
                     </div>
 
-                    <div style="border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 5px 0; margin: 6px 0; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 900; font-size: 14px;">TOTAL:</span>
-                        <span style="font-weight: 900; font-size: 16px;">৳ ${total}</span>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                        <span>Method:</span>
+                        <span style="text-transform: uppercase; font-weight: 700; color: #000; white-space: nowrap;">${order.payment_method || 'Cash'}</span>
                     </div>
-
-                    <div style="display: flex; justify-content: space-between; margin-top: 3px; font-size: 11px;">
-                        <span>Payment Method:</span>
-                        <span style="text-transform: uppercase;">${order.payment_method || 'Cash'}</span>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                        <span>Paid Amount:</span>
+                        <strong style="color: #000; white-space: nowrap;">৳ ${Math.round(order.paid_amount ?? (isPaid ? (order.total_amount || 0) : 0)).toLocaleString()}</strong>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 2px; font-size: 11px;">
+                    ${(order.due_amount > 0) ? `
+                    <div style="display: flex; justify-content: space-between; margin-top: 2px; border: 1.5px solid #000; padding: 2px 3px; border-radius: 3px; color: #000;">
+                        <span style="font-weight: 900;">DUE BALANCE:</span>
+                        <strong style="font-weight: 900; white-space: nowrap;">৳ ${Math.round(order.due_amount).toLocaleString()}</strong>
+                    </div>` : ''}
+                    <div style="display: flex; justify-content: space-between; margin-top: 1px;">
                         <span>Payment Status:</span>
-                        <strong style="text-transform: uppercase; color: ${isPaid ? '#000' : '#dc2626'};">${isPaid ? 'PAID' : 'DUE / RUNNING BILL'}</strong>
+                        <strong style="text-transform: uppercase; color: #000; white-space: nowrap;">${isPaid ? 'PAID' : (order.due_amount > 0 && order.paid_amount > 0 ? 'PARTIAL' : 'DUE')}</strong>
                     </div>
                 </div>
 
-                <div style="border-top: 2px dashed #000; margin: 10px 0 6px 0;"></div>
+                <div style="border-top: 1.5px dashed #000; margin: 6px 0 3px 0;"></div>
 
                 <!-- FOOTER -->
-                <div style="text-align: center; font-size: 11px; color: #111; margin-top: 4px;">
-                    <div style="font-weight: bold; margin-bottom: 2px;">Thank you for dining with us!</div>
+                <div style="text-align: center; font-size: ${is80 ? '9.5px' : '8.5px'}; color: #000; margin-top: 3px; line-height: 1.25;">
+                    <div style="font-weight: 800;">Thank you for dining with Italian Pizza Hut!</div>
                     <div>Please visit again!</div>
-                    <div style="font-size: 9px; color: #666; margin-top: 4px;">Italian Pizza Restaurant POS</div>
                 </div>
 
             </div>
@@ -1433,7 +2239,7 @@
             return;
         }
 
-        const receiptHtml = generateReceiptHtml(orderToPrint, tableNameToPrint);
+        const receiptHtml = generateReceiptHtml(orderToPrint, tableNameToPrint, currentReceiptSize);
 
         // Update modal and fallback print container
         const modalContainer = document.getElementById('thermalPaperReceipt');
@@ -1450,8 +2256,13 @@
         executePrint();
     }
 
-    // Execute iframe printing (isolated, thermal 80mm styled)
-    function executePrint() {
+    // Execute iframe printing (isolated, thermal 58mm/80mm adaptive, zero margin, no cutting)
+    function executePrint(customSize = null) {
+        const sizeToUse = customSize || currentReceiptSize || '58mm';
+        const is80 = (sizeToUse === '80mm');
+        const printWidth = is80 ? '72mm' : '48mm';
+        const pageSize = is80 ? '80mm' : '58mm';
+
         const directContainer = document.getElementById('posDirectPrintContainer');
         if (!directContainer || !directContainer.innerHTML) return;
 
@@ -1465,17 +2276,32 @@
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Restaurant Invoice - Italian Pizza</title>
+                    <title>Restaurant Invoice - Italian Pizza Hut</title>
                     <style>
                         @page {
-                            size: 80mm auto;
-                            margin: 2mm;
+                            size: ${pageSize} auto;
+                            margin: 0mm !important;
                         }
-                        body {
-                            margin: 0;
-                            padding: 0;
-                            background: #ffffff;
-                            font-family: 'Courier New', Courier, monospace;
+                        * {
+                            box-sizing: border-box !important;
+                        }
+                        html, body {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            background: #ffffff !important;
+                            color: #000000 !important;
+                            width: 100% !important;
+                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+                        .thermal-receipt-wrap {
+                            width: ${printWidth} !important;
+                            max-width: ${printWidth} !important;
+                            margin: 0 auto !important;
+                            padding: ${is80 ? '2mm 2mm' : '1mm 1mm'} !important;
+                            color: #000000 !important;
+                            box-sizing: border-box !important;
                         }
                     </style>
                 </head>
@@ -1489,7 +2315,7 @@
             printFrame.contentWindow.focus();
             setTimeout(() => {
                 printFrame.contentWindow.print();
-            }, 250);
+            }, 300);
         } catch (e) {
             // Fallback to window.print() if iframe blocked
             window.print();
@@ -1507,6 +2333,7 @@
 
     // Auto select table if query string provided
     document.addEventListener('DOMContentLoaded', () => {
+        updateReceiptSizeUI();
         const urlParams = new URLSearchParams(window.location.search);
         const tblId = urlParams.get('table');
         if (tblId) {

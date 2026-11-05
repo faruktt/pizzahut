@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Edit Product | Italian Pizza Admin')
+@section('title', 'Edit Product | Italian Pizza Hut Admin')
 @section('page-title', 'Edit Product')
 
 @section('admin-content')

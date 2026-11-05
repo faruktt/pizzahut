@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manage Dining Tables | Italian Pizza Admin')
+@section('title', 'Manage Dining Tables | Italian Pizza Hut Admin')
 @section('page-title', 'Restaurant Dining Tables Management')
 
 @section('admin-content')

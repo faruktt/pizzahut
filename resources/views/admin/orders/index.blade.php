@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Manage Orders | Italian Pizza Admin')
+@section('title', 'Manage Orders | Italian Pizza Hut Admin')
 @section('page-title', 'Orders Management')
 
 @section('admin-content')
@@ -8,22 +8,22 @@
     <!-- Header with Filters & Create Button -->
     <div class="card-panel-header" style="flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <a href="{{ route('admin.orders.index') }}" class="btn-view-store {{ !request('type') ? 'active' : '' }}" style="{{ !request('type') ? 'background: #0284c7; color: #fff;' : '' }}">
+            <a href="{{ route('admin.orders.index', array_filter(array_merge(request()->except(['page', 'type']), []))) }}" class="btn-view-store {{ !request('type') ? 'active' : '' }}" style="{{ !request('type') ? 'background: #0284c7; color: #fff;' : '' }}">
                 All Orders
             </a>
-            <a href="{{ route('admin.orders.index') }}?type=delivery" class="btn-view-store" style="{{ request('type') == 'delivery' ? 'background: #0284c7; color: #fff;' : '' }}">
+            <a href="{{ route('admin.orders.index', array_merge(request()->except('page'), ['type' => 'delivery'])) }}" class="btn-view-store" style="{{ request('type') == 'delivery' ? 'background: #0284c7; color: #fff;' : '' }}">
                 <i class="fa-solid fa-motorcycle"></i> Delivery
             </a>
-            <a href="{{ route('admin.orders.index') }}?type=takeaway" class="btn-view-store" style="{{ request('type') == 'takeaway' ? 'background: #0284c7; color: #fff;' : '' }}">
+            <a href="{{ route('admin.orders.index', array_merge(request()->except('page'), ['type' => 'takeaway'])) }}" class="btn-view-store" style="{{ request('type') == 'takeaway' ? 'background: #0284c7; color: #fff;' : '' }}">
                 <i class="fa-solid fa-bag-shopping"></i> Takeaway
             </a>
-            <a href="{{ route('admin.orders.index') }}?type=dine_in" class="btn-view-store" style="{{ request('type') == 'dine_in' ? 'background: #0284c7; color: #fff;' : '' }}">
+            <a href="{{ route('admin.orders.index', array_merge(request()->except('page'), ['type' => 'dine_in'])) }}" class="btn-view-store" style="{{ request('type') == 'dine_in' ? 'background: #0284c7; color: #fff;' : '' }}">
                 <i class="fa-solid fa-utensils"></i> Dine-in (Tables)
             </a>
         </div>
 
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <form action="{{ route('admin.orders.index') }}" method="GET" style="display: flex; gap: 6px; align-items: center;">
+            <form action="{{ route('admin.orders.index') }}" method="GET" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                 @if(request('type'))
                     <input type="hidden" name="type" value="{{ request('type') }}">
                 @endif
@@ -35,8 +35,19 @@
                         </option>
                     @endforeach
                 </select>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Order #, name, phone..." class="form-control" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid var(--border-light); border-radius: 6px;">
-                <button type="submit" class="btn-view-store">Search</button>
+                <select name="per_page" onchange="this.form.submit()" class="form-control" style="padding: 6px 10px; font-size: 0.85rem; border: 1px solid var(--border-light); border-radius: 6px; width: auto;" title="Orders per page">
+                    <option value="15" {{ ($perPage ?? 15) == 15 ? 'selected' : '' }}>15 / page</option>
+                    <option value="25" {{ ($perPage ?? 15) == 25 ? 'selected' : '' }}>25 / page</option>
+                    <option value="50" {{ ($perPage ?? 15) == 50 ? 'selected' : '' }}>50 / page</option>
+                    <option value="100" {{ ($perPage ?? 15) == 100 ? 'selected' : '' }}>100 / page</option>
+                </select>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Order #, name, phone..." class="form-control" style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid var(--border-light); border-radius: 6px; width: 170px;">
+                <button type="submit" class="btn-view-store"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+                @if(request('type') || request('status') || request('search') || request('per_page'))
+                    <a href="{{ route('admin.orders.index') }}" class="btn-view-store" style="color: #ef4444; border-color: #fca5a5;" title="Clear filters">
+                        <i class="fa-solid fa-xmark"></i> Clear
+                    </a>
+                @endif
             </form>
 
             <a href="{{ route('admin.order-statuses.index') }}" class="btn-view-store" title="Manage dynamic order statuses">
@@ -100,11 +111,18 @@
                             <strong style="color: var(--admin-primary); font-size: 0.95rem;">
                                 ৳ {{ number_format($ord->total_amount) }}
                             </strong>
+                            @if($ord->due_amount > 0)
+                                <div style="color:#dc2626; font-size:0.75rem; font-weight:700;">Due: ৳{{ number_format($ord->due_amount) }}</div>
+                            @endif
                         </td>
                         <td>
-                            <span class="badge {{ $ord->payment_status === 'paid' ? 'badge-completed' : 'badge-pending' }}">
-                                {{ ucfirst($ord->payment_status) }}
-                            </span>
+                            @if($ord->payment_status === 'paid')
+                                <span class="badge" style="background:#dcfce7; color:#15803d;">Paid</span>
+                            @elseif($ord->payment_status === 'partial')
+                                <span class="badge" style="background:#fef3c7; color:#b45309;">Partial</span>
+                            @else
+                                <span class="badge" style="background:#fee2e2; color:#b91c1c;">Due</span>
+                            @endif
                         </td>
                         <td>
                             @php
@@ -149,8 +167,8 @@
         </table>
     </div>
 
-    <div style="padding: 16px 24px;">
-        {{ $orders->links() }}
+    <div style="padding: 16px 24px; border-top: 1px solid var(--border-light); background: #ffffff;">
+        {{ $orders->links('vendor.pagination.admin') }}
     </div>
 </div>
 @endsection

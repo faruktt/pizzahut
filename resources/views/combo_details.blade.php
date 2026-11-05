@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $combo->name . ' | Italian Pizza')
+@section('title', $combo->name . ' | Italian Pizza Hut')
 @section('meta-description', $combo->description ?? $combo->name . ' - Select your items and enjoy!')
 
 @push('styles')

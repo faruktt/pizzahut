@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My Dashboard | Italian Pizza')
+@section('title', 'My Dashboard | Italian Pizza Hut')
 
 @push('styles')
 <style>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Admin Portal | Italian Pizza & POS')</title>
+    <title>@yield('title', 'Admin Portal | Italian Pizza Hut & POS')</title>
 
     <!-- Google Fonts: Playfair Display (Headings) & Poppins (Body & UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -554,6 +554,89 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 
+        /* Universal Admin Pagination */
+        .admin-pagination-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            width: 100%;
+        }
+        .admin-pagination-info {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .admin-pagination-info .fw-bold {
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .admin-pagination-links {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .page-link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            min-width: 34px;
+            height: 34px;
+            padding: 0 11px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #334155;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+            user-select: none;
+            line-height: 1;
+        }
+        .page-link-btn:hover:not(.disabled):not(.active):not(.dots) {
+            background: #f8fafc;
+            border-color: var(--admin-primary, #0284c7);
+            color: var(--admin-primary, #0284c7);
+            transform: translateY(-1px);
+        }
+        .page-link-btn.active {
+            background: var(--admin-primary, #0284c7);
+            border-color: var(--admin-primary, #0284c7);
+            color: #ffffff;
+            font-weight: 800;
+            cursor: default;
+            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
+        }
+        .page-link-btn.disabled {
+            color: #94a3b8;
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+        .page-link-btn.dots {
+            border: none;
+            background: transparent;
+            cursor: default;
+            color: #64748b;
+            padding: 0 4px;
+            min-width: 20px;
+            font-weight: 700;
+        }
+        /* Fallback for native Laravel SVG pagination if any view uses raw tailwind SVG */
+        nav[role="navigation"] svg {
+            width: 16px !important;
+            height: 16px !important;
+            max-width: 16px !important;
+            max-height: 16px !important;
+            display: inline-block !important;
+        }
+
         /* Global Print Rules: Hide admin sidebar and chrome during printing */
         @media print {
             aside.admin-sidebar,
@@ -607,7 +690,7 @@
                         <div class="sidebar-logo-icon"><i class="fa-solid fa-pizza-slice"></i></div>
                         <div>
                             <div class="sidebar-brand-title">
-                                Italian Pizza <span class="sidebar-brand-badge">PRO</span>
+                                Italian Pizza Hut <span class="sidebar-brand-badge">PRO</span>
                             </div>
                             <div class="sidebar-brand-sub">Admin & POS Manager</div>
                         </div>
@@ -617,7 +700,10 @@
         </div>
 
         <nav class="sidebar-nav">
-            @php $currentAdmin = auth('admin')->user(); @endphp
+            @php
+                $currentAdmin = auth('admin')->user();
+                $pendingOrdersCount = \App\Models\Order::where('order_status', 'pending')->count();
+            @endphp
 
             @if($currentAdmin->hasPermission('dashboard.view'))
                 <div class="nav-section-title">Main</div>
@@ -635,8 +721,15 @@
             @if($currentAdmin->hasAnyPermission(['orders.view', 'order_statuses.manage', 'settings.manage', 'users.view']))
                 <div class="nav-section-title">Orders & Users</div>
                 @if($currentAdmin->hasPermission('orders.view'))
-                    <a href="{{ route('admin.orders.index') }}" class="nav-item-link {{ request()->routeIs('admin.orders.index','admin.orders.show') ? 'active' : '' }}">
-                        <i class="fa-solid fa-receipt"></i><span>Orders</span>
+                    <a href="{{ route('admin.orders.index') }}" class="nav-item-link {{ request()->routeIs('admin.orders.index','admin.orders.show') ? 'active' : '' }}" style="display:flex; align-items:center; justify-content:space-between;">
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-receipt"></i><span>Orders</span>
+                        </span>
+                        @if($pendingOrdersCount > 0)
+                            <span class="badge" style="background:#ef4444; color:#ffffff; font-size:0.72rem; font-weight:800; padding:2px 7px; border-radius:12px; line-height:1; min-width:18px; text-align:center; box-shadow:0 1px 4px rgba(239,68,68,0.4);" title="{{ $pendingOrdersCount }} Pending Order{{ $pendingOrdersCount > 1 ? 's' : '' }}">
+                                {{ $pendingOrdersCount }}
+                            </span>
+                        @endif
                     </a>
                     @if($currentAdmin->hasPermission('orders.create'))
                         <a href="{{ route('admin.orders.create') }}" class="nav-item-link {{ request()->routeIs('admin.orders.create') ? 'active' : '' }}">
@@ -660,6 +753,9 @@
                         <i class="fa-solid fa-users"></i><span>Customers</span>
                     </a>
                 @endif
+                <a href="{{ route('admin.due-customers.index') }}" class="nav-item-link {{ request()->routeIs('admin.due-customers.*') ? 'active' : '' }}">
+                    <i class="fa-solid fa-hand-holding-dollar"></i><span>Due Customers</span>
+                </a>
             @endif
 
             @if($currentAdmin->hasAnyPermission(['products.view', 'categories.manage', 'sizes.manage', 'crusts.manage', 'addons.manage', 'combos.manage', 'tables.manage']))
@@ -700,6 +796,25 @@
                     </a>
                 @endif
             @endif
+
+            <div class="nav-section-title">Inventory</div>
+            <a href="{{ route('admin.ingredients.index') }}" class="nav-item-link {{ request()->routeIs('admin.ingredients.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-carrot"></i><span>Ingredients</span>
+            </a>
+            <a href="{{ route('admin.purchases.index') }}" class="nav-item-link {{ request()->routeIs('admin.purchases.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-dolly"></i><span>Purchases</span>
+            </a>
+            <a href="{{ route('admin.suppliers.index') }}" class="nav-item-link {{ request()->routeIs('admin.suppliers.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-truck"></i><span>Suppliers</span>
+            </a>
+            <a href="{{ route('admin.expenses.index') }}" class="nav-item-link {{ request()->routeIs('admin.expenses.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-file-invoice-dollar"></i><span>Expenses</span>
+            </a>
+
+            <div class="nav-section-title">Reports & Cash</div>
+            <a href="{{ route('admin.reports.cash-statement') }}" class="nav-item-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                <i class="fa-solid fa-calculator"></i><span>Cash Statement</span>
+            </a>
 
             @if($currentAdmin->hasAnyPermission(['coupons.manage', 'points.manage', 'pages.manage', 'banners.manage']))
                 <div class="nav-section-title">Marketing</div>

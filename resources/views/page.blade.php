@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $page->title . ' | Italian Pizza')
+@section('title', $page->title . ' | Italian Pizza Hut')
 
 @push('styles')
 <style>
@@ -217,7 +217,7 @@
                 <h1 class="cms-title">{{ $page->title }}</h1>
                 <div class="cms-meta">
                     <span><i class="fa-regular fa-clock"></i> Updated {{ $page->updated_at ? $page->updated_at->diffForHumans() : 'Recently' }}</span>
-                    <span><i class="fa-solid fa-shield-halved"></i> Official Italian Pizza</span>
+                    <span><i class="fa-solid fa-shield-halved"></i> Official Italian Pizza Hut</span>
                 </div>
             </header>
 

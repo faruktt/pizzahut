@@ -723,7 +723,6 @@
                 <div class="summary-row total-row">
                     <div>
                         <div>Total</div>
-                        <span style="font-size:0.75rem; color:#777; font-weight:normal;">(Including Vat & Tax)</span>
                     </div>
                     <span class="total-amount-val" id="summaryTotal">৳ {{ number_format($total) }}</span>
                 </div>

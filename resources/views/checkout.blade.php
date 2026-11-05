@@ -231,6 +231,43 @@
                             <span>Credit / Debit Card</span>
                         </label>
                     </div>
+
+                    <!-- Payment Terms: Full, Partial, Due -->
+                    <div style="margin-top: 18px; padding-top: 16px; border-top: 1px dashed #e2e8f0;">
+                        <label style="display:block; font-size:0.85rem; font-weight:700; color:#334155; margin-bottom:8px;">
+                            Payment Type / পেমেন্ট অপশন:
+                        </label>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                            <label style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 6px; border:2px solid #e2e8f0; border-radius:8px; cursor:pointer; text-align:center;">
+                                <input type="radio" name="payment_option" value="full" checked onchange="handlePayOptionChange('full')" style="margin-bottom:4px;">
+                                <span style="font-size:0.82rem; font-weight:700;">Full Payment</span>
+                                <small style="font-size:0.7rem; color:#64748b;">সম্পূর্ণ পরিশোধ</small>
+                            </label>
+
+                            <label style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 6px; border:2px solid #e2e8f0; border-radius:8px; cursor:pointer; text-align:center;">
+                                <input type="radio" name="payment_option" value="partial" onchange="handlePayOptionChange('partial')" style="margin-bottom:4px;">
+                                <span style="font-size:0.82rem; font-weight:700;">Partial Pay</span>
+                                <small style="font-size:0.7rem; color:#64748b;">কিছু টাকা অগ্রিম</small>
+                            </label>
+
+                            <label style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 6px; border:2px solid #e2e8f0; border-radius:8px; cursor:pointer; text-align:center;">
+                                <input type="radio" name="payment_option" value="due" onchange="handlePayOptionChange('due')" style="margin-bottom:4px;">
+                                <span style="font-size:0.82rem; font-weight:700;">Pay Later (Due)</span>
+                                <small style="font-size:0.7rem; color:#64748b;">সম্পূর্ণ বাকি</small>
+                            </label>
+                        </div>
+
+                        <!-- Partial Amount input -->
+                        <div id="partialInputGroup" style="display:none; margin-top:12px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #cbd5e1;">
+                            <label style="display:block; font-size:0.8rem; font-weight:700; color:#1e293b; margin-bottom:4px;">
+                                Advance Paid Amount (৳) / অগ্রিম কত পরিশোধ করতে চান:
+                            </label>
+                            <input type="number" step="1" min="1" max="{{ $total }}" name="partial_amount" id="partialAmountInput" class="form-control" placeholder="e.g. 200" style="width:100%; font-weight:700;">
+                            <small style="color:#64748b; font-size:0.75rem; margin-top:4px; display:block;">
+                                বাকি টাকা ডেলিভারির সময় বা পরে পরিশোধ করা যাবে।
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -279,10 +316,12 @@
                             <span>Delivery Fee</span>
                             <strong id="displayDeliveryFee">৳ {{ number_format($deliveryCharge) }}</strong>
                         </div>
+                        @if($vatTax > 0)
                         <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
-                            <span>VAT / Tax (5%)</span>
+                            <span>VAT / Tax</span>
                             <strong>৳ {{ number_format($vatTax) }}</strong>
                         </div>
+                        @endif
                         <div style="display:flex; justify-content:space-between; font-size:1.25rem; font-weight:900; color:#c8102e; border-top:2px solid #ddd; padding-top:10px; margin-top:8px;">
                             <span>Total Payable</span>
                             <span id="displayTotalPayable">৳ {{ number_format($total) }}</span>
@@ -343,6 +382,16 @@
         document.getElementById('payCash').classList.toggle('active', method === 'cash');
         document.getElementById('payBkash').classList.toggle('active', method === 'bkash');
         document.getElementById('payCard').classList.toggle('active', method === 'card');
+    }
+
+    function handlePayOptionChange(opt) {
+        const partialGroup = document.getElementById('partialInputGroup');
+        if (opt === 'partial') {
+            partialGroup.style.display = 'block';
+            document.getElementById('partialAmountInput').focus();
+        } else {
+            partialGroup.style.display = 'none';
+        }
     }
 </script>
 @endpush

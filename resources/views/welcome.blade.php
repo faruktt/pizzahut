@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Italian Pizza | Authentic Wood-Fired Pizzeria – Coming Soon</title>
+    <title>Italian Pizza Hut | Authentic Wood-Fired Pizzeria – Coming Soon</title>
     <meta name="description" content="Authentic Italian wood-fired pizza crafted with 48-hour fermented sourdough, San Marzano tomatoes, and fresh buffalo mozzarella. Coming soon to your city!">
 
     <!-- Google Fonts -->
@@ -771,7 +771,7 @@
                     </svg>
                 </div>
                 <div>
-                    <span class="brand-title font-cinzel">Italian Pizza</span>
+                    <span class="brand-title font-cinzel">Italian Pizza Hut</span>
                     <span class="brand-sub">Antica Pizzeria Napoletana</span>
                 </div>
             </a>
@@ -949,7 +949,7 @@
         <!-- Footer -->
         <footer>
             <div>
-                <p>© {{ date('Y') }} <strong>Italian Pizza</strong> (Pizzeria Italiana). Fatto con amore e passione.</p>
+                <p>© {{ date('Y') }} <strong>Italian Pizza Hut</strong> (Pizzeria Italiana). Fatto con amore e passione.</p>
                 <p style="font-size: 0.78rem; margin-top: 0.25rem;">📍 Location: Food District Avenue • Opening for Dine-in & Takeaway Soon</p>
             </div>
 

@@ -19,6 +19,10 @@ use App\Http\Controllers\Admin\AdminBannerController;
 use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\Admin\AdminComboController;
 use App\Http\Controllers\Admin\AdminAddOnController;
+use App\Http\Controllers\Admin\AdminSupplierController;
+use App\Http\Controllers\Admin\AdminIngredientController;
+use App\Http\Controllers\Admin\AdminPurchaseController;
+use App\Http\Controllers\Admin\AdminExpenseController;
 use App\Http\Middleware\AdminAuthenticate;
 use App\Http\Middleware\AdminRedirectIfAuthenticated;
 
@@ -108,9 +112,14 @@ Route::prefix('admin')->middleware(AdminAuthenticate::class)->group(function () 
 
     // Point of Sale (POS) - Table & Live Dine-in Ordering
     Route::get('/pos', [AdminPosController::class, 'index'])->name('admin.pos.index');
+    Route::get('/pos/customers/search', [AdminPosController::class, 'searchCustomers'])->name('admin.pos.customers.search');
+    Route::post('/pos/customers/quick-add', [AdminPosController::class, 'quickAddCustomer'])->name('admin.pos.customers.quickAdd');
     Route::get('/pos/table/{tableId}', [AdminPosController::class, 'getTableOrder'])->name('admin.pos.tableOrder');
     Route::post('/pos/table/{tableId}/add', [AdminPosController::class, 'addItemToTable'])->name('admin.pos.addItem');
+    Route::post('/pos/table/{tableId}/customer', [AdminPosController::class, 'updateTableCustomer'])->name('admin.pos.updateCustomer');
+    Route::post('/pos/table/{tableId}/discount', [AdminPosController::class, 'updateTableDiscount'])->name('admin.pos.updateDiscount');
     Route::post('/pos/item/{itemId}/remove', [AdminPosController::class, 'removeItemFromTable'])->name('admin.pos.removeItem');
+    Route::post('/pos/item/{itemId}/update-qty', [AdminPosController::class, 'updateItemQuantity'])->name('admin.pos.updateQty');
     Route::post('/pos/table/{tableId}/complete', [AdminPosController::class, 'completeTableOrder'])->name('admin.pos.completeOrder');
 
     // Orders Management (Supports orders with or without registered customers)
@@ -255,5 +264,45 @@ Route::prefix('admin')->middleware(AdminAuthenticate::class)->group(function () 
         Route::put('/staff/{id}', [\App\Http\Controllers\Admin\AdminStaffController::class, 'update'])->name('admin.staff.update');
         Route::delete('/staff/{id}', [\App\Http\Controllers\Admin\AdminStaffController::class, 'destroy'])->name('admin.staff.destroy');
     });
+
+    // Inventory: Suppliers
+    Route::get('/suppliers', [AdminSupplierController::class, 'index'])->name('admin.suppliers.index');
+    Route::get('/suppliers/create', [AdminSupplierController::class, 'create'])->name('admin.suppliers.create');
+    Route::post('/suppliers', [AdminSupplierController::class, 'store'])->name('admin.suppliers.store');
+    Route::get('/suppliers/{id}/edit', [AdminSupplierController::class, 'edit'])->name('admin.suppliers.edit');
+    Route::put('/suppliers/{id}', [AdminSupplierController::class, 'update'])->name('admin.suppliers.update');
+    Route::delete('/suppliers/{id}', [AdminSupplierController::class, 'destroy'])->name('admin.suppliers.destroy');
+
+    // Inventory: Ingredients
+    Route::get('/ingredients', [AdminIngredientController::class, 'index'])->name('admin.ingredients.index');
+    Route::get('/ingredients/create', [AdminIngredientController::class, 'create'])->name('admin.ingredients.create');
+    Route::post('/ingredients', [AdminIngredientController::class, 'store'])->name('admin.ingredients.store');
+    Route::get('/ingredients/{id}/edit', [AdminIngredientController::class, 'edit'])->name('admin.ingredients.edit');
+    Route::put('/ingredients/{id}', [AdminIngredientController::class, 'update'])->name('admin.ingredients.update');
+    Route::delete('/ingredients/{id}', [AdminIngredientController::class, 'destroy'])->name('admin.ingredients.destroy');
+    Route::post('/ingredients/{id}/adjust-stock', [AdminIngredientController::class, 'adjustStock'])->name('admin.ingredients.adjustStock');
+
+    // Inventory: Purchases
+    Route::get('/purchases', [AdminPurchaseController::class, 'index'])->name('admin.purchases.index');
+    Route::get('/purchases/create', [AdminPurchaseController::class, 'create'])->name('admin.purchases.create');
+    Route::post('/purchases', [AdminPurchaseController::class, 'store'])->name('admin.purchases.store');
+    Route::get('/purchases/{id}', [AdminPurchaseController::class, 'show'])->name('admin.purchases.show');
+    Route::delete('/purchases/{id}', [AdminPurchaseController::class, 'destroy'])->name('admin.purchases.destroy');
+
+    // Inventory: Expenses
+    Route::get('/expenses', [AdminExpenseController::class, 'index'])->name('admin.expenses.index');
+    Route::get('/expenses/create', [AdminExpenseController::class, 'create'])->name('admin.expenses.create');
+    Route::post('/expenses', [AdminExpenseController::class, 'store'])->name('admin.expenses.store');
+    Route::get('/expenses/{id}/edit', [AdminExpenseController::class, 'edit'])->name('admin.expenses.edit');
+    Route::put('/expenses/{id}', [AdminExpenseController::class, 'update'])->name('admin.expenses.update');
+    Route::delete('/expenses/{id}', [AdminExpenseController::class, 'destroy'])->name('admin.expenses.destroy');
+
+    // Due Customers Management (বাকি খাতা)
+    Route::get('/due-customers', [\App\Http\Controllers\Admin\AdminDueCustomerController::class, 'index'])->name('admin.due-customers.index');
+    Route::get('/due-customers/{customerKey}', [\App\Http\Controllers\Admin\AdminDueCustomerController::class, 'show'])->name('admin.due-customers.show');
+    Route::post('/due-customers/collect', [\App\Http\Controllers\Admin\AdminDueCustomerController::class, 'collectPayment'])->name('admin.due-customers.collect');
+
+    // Reports: Cash Statement & Closing
+    Route::get('/reports/cash-statement', [\App\Http\Controllers\Admin\AdminReportController::class, 'cashStatement'])->name('admin.reports.cash-statement');
 });
 

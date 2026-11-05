@@ -23,3 +23,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 *.zip
+scratch/
+cpanel_cookies.txt
+

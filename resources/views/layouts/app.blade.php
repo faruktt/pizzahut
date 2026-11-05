@@ -786,7 +786,7 @@
                     @elseif(!empty($googleMapEmbed) && Str::startsWith(trim($googleMapEmbed), 'http'))
                         <iframe src="{{ trim($googleMapEmbed) }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                     @else
-                        <iframe src="https://maps.google.com/maps?q={{ urlencode(!empty($siteAddress) ? $siteAddress : 'Italian Pizza Dhaka Bangladesh') }}&t=&z=15&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                        <iframe src="https://maps.google.com/maps?q={{ urlencode(!empty($siteAddress) ? $siteAddress : 'Italian Pizza Hut Dhaka Bangladesh') }}&t=&z=15&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                     @endif
                 </div>
 
@@ -794,7 +794,7 @@
                     <div>
                         <div class="map-info-title">
                             <i class="fa-solid fa-store" style="color:var(--brand-red);"></i>
-                            <span>Italian Pizza</span>
+                            <span>Italian Pizza Hut</span>
                         </div>
 
                         <div class="map-info-item">
@@ -825,12 +825,12 @@
                             <i class="fa-solid fa-envelope"></i>
                             <div>
                                 <strong style="display:block;color:#0f172a;margin-bottom:2px;">Support Email</strong>
-                                <span>{{ !empty($siteEmail) ? $siteEmail : 'contact@italianpizza.com' }}</span>
+                                <span>{{ !empty($siteEmail) ? $siteEmail : 'contact@italianpizzahut.com' }}</span>
                             </div>
                         </div>
                     </div>
 
-                    <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode(!empty($siteAddress) ? $siteAddress : 'Italian Pizza Dhaka') }}" target="_blank" class="map-btn-directions">
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode(!empty($siteAddress) ? $siteAddress : 'Italian Pizza Hut Dhaka') }}" target="_blank" class="map-btn-directions">
                         <i class="fa-solid fa-diamond-turn-right"></i> Get Live Directions
                     </a>
                 </div>
@@ -850,7 +850,7 @@
                         @else
                             <span class="brand-logo-icon"><i class="fa-solid fa-pizza-slice"></i></span>
                             <div class="brand-logo-text" style="color:#fff;">
-                                <strong>Italian Pizza</strong>
+                                <strong>Italian Pizza Hut</strong>
                                 <span style="color:#aaa;">BANGLADESH</span>
                             </div>
                         @endif
@@ -920,7 +920,7 @@
                         </div>
                         <div style="display:flex;align-items:center;gap:10px;">
                             <i class="fa-solid fa-envelope" style="color:var(--brand-red);font-size:0.95rem;width:20px;text-align:center;"></i>
-                            <span>{{ !empty($siteEmail) ? $siteEmail : 'contact@italianpizza.com' }}</span>
+                            <span>{{ !empty($siteEmail) ? $siteEmail : 'contact@italianpizzahut.com' }}</span>
                         </div>
                         <div style="display:flex;align-items:center;gap:10px;">
                             <i class="fa-solid fa-clock" style="color:var(--brand-red);font-size:0.95rem;width:20px;text-align:center;"></i>

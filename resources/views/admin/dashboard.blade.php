@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin Dashboard | Italian Pizza')
+@section('title', 'Admin Dashboard | Italian Pizza Hut')
 @section('page-title', 'Overview & Restaurant Analytics')
 
 @push('admin-styles')

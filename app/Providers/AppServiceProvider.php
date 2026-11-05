@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Use custom clean pagination view for all admin and system links()
+        Paginator::defaultView('vendor.pagination.admin');
+        Paginator::defaultSimpleView('vendor.pagination.admin');
+
         // Share website branding, address, map, categories and pages with all frontend pages
         View::composer(['layouts.app', 'auth.*'], function ($view) {
             $view->with('siteLogo', Setting::getValue('site_logo'));

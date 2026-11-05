@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         Admin::firstOrCreate(
             ['email' => 'admin@italianpizza.com'],
             [
-                'name' => 'Italian Pizza Admin',
+                'name' => 'Italian Pizza Hut Admin',
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
             ]

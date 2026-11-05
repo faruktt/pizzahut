@@ -231,10 +231,12 @@
                     <span>Delivery Fee:</span>
                     <strong>৳ {{ number_format($order->delivery_charge) }}</strong>
                 </div>
+                @if($order->vat_tax > 0)
                 <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
-                    <span>VAT (5%):</span>
+                    <span>VAT / Tax:</span>
                     <strong>৳ {{ number_format($order->vat_tax) }}</strong>
                 </div>
+                @endif
                 <div style="display:flex; justify-content:space-between; font-size: 1.25rem; font-weight: 900; color: var(--brand-red); border-top: 1px solid #ddd; padding-top: 8px; margin-top: 8px;">
                     <span>Total Amount:</span>
                     <span>৳ {{ number_format($order->total_amount) }}</span>

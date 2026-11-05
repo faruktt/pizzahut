@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Website & Store Settings | Italian Pizza Admin')
+@section('title', 'Website & Store Settings | Italian Pizza Hut Admin')
 @section('page-title', 'Website & Store Settings')
 
 @section('admin-content')
@@ -10,10 +10,10 @@
         <div class="card-panel-header" style="background:#f8fafc;">
             <div style="display:flex;align-items:center;gap:10px;">
                 <div style="width:36px;height:36px;border-radius:8px;background:rgba(200,16,46,0.1);color:var(--admin-primary);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
-                    <i class="fa-solid fa-location-dot"></i>
+                    <i class="fa-solid fa-store"></i>
                 </div>
                 <div>
-                    <span class="card-panel-title">Address & Map</span>
+                    <span class="card-panel-title">General Brand & Store Details</span>
                 </div>
             </div>
         </div>
@@ -23,9 +23,9 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="site_address">Restaurant Address</label>
-                        <input type="text" name="site_address" id="site_address" class="form-control" value="{{ old('site_address', $siteAddress) }}" placeholder="e.g. House 14, Road 11, Block D, Gulshan-2, Dhaka">
-                        @error('site_address') <div class="form-error">{{ $message }}</div> @enderror
+                        <label class="form-label" for="site_name">Restaurant / Brand Name</label>
+                        <input type="text" name="site_name" id="site_name" class="form-control" value="{{ old('site_name', $siteName ?? 'Italian Pizza Hut') }}" placeholder="e.g. Italian Pizza Hut">
+                        @error('site_name') <div class="form-error">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="form-group">
@@ -37,11 +37,19 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="site_email">Contact Email Address</label>
-                        <input type="email" name="site_email" id="site_email" class="form-control" value="{{ old('site_email', $siteEmail) }}" placeholder="e.g. contact@italianpizza.com">
-                        @error('site_email') <div class="form-error">{{ $message }}</div> @enderror
+                        <label class="form-label" for="site_address">Restaurant Address</label>
+                        <input type="text" name="site_address" id="site_address" class="form-control" value="{{ old('site_address', $siteAddress) }}" placeholder="e.g. House 14, Road 11, Block D, Gulshan-2, Dhaka">
+                        @error('site_address') <div class="form-error">{{ $message }}</div> @enderror
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label" for="site_email">Contact Email Address</label>
+                        <input type="email" name="site_email" id="site_email" class="form-control" value="{{ old('site_email', $siteEmail) }}" placeholder="e.g. contact@italianpizzahut.com">
+                        @error('site_email') <div class="form-error">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="opening_hours">Opening Hours</label>
                         <input type="text" name="opening_hours" id="opening_hours" class="form-control" value="{{ old('opening_hours', $openingHours) }}" placeholder="e.g. Daily: 11:00 AM – 11:30 PM">
@@ -66,7 +74,7 @@
                         @elseif(Str::startsWith(trim($googleMapEmbed), 'http'))
                             <iframe src="{{ trim($googleMapEmbed) }}" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                         @else
-                            <iframe src="https://maps.google.com/maps?q={{ urlencode($siteAddress ?: 'Italian Pizza Dhaka') }}&t=&z=15&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                            <iframe src="https://maps.google.com/maps?q={{ urlencode($siteAddress ?: 'Italian Pizza Hut Dhaka') }}&t=&z=15&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                         @endif
                     </div>
                 </div>

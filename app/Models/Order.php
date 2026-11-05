@@ -29,6 +29,8 @@ class Order extends Model
         'points_discount',
         'points_earned',
         'total_amount',
+        'paid_amount',
+        'due_amount',
         'payment_method',
         'payment_status',
         'order_status',
@@ -53,6 +55,26 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function duePayments()
+    {
+        return $this->hasMany(CustomerDuePayment::class);
+    }
+
+    public function isFullyPaid(): bool
+    {
+        return $this->payment_status === 'paid' || $this->due_amount <= 0;
+    }
+
+    public function isPartial(): bool
+    {
+        return $this->payment_status === 'partial' || ($this->paid_amount > 0 && $this->due_amount > 0);
+    }
+
+    public function isDue(): bool
+    {
+        return $this->due_amount > 0;
     }
 
     public function statusRecord()

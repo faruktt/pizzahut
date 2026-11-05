@@ -71,9 +71,9 @@ class CheckoutController extends Controller
         $baseDeliveryCharge = Setting::getDeliveryCharge();
         $freeDeliveryMin = (float) Setting::getValue('free_delivery_min', 0);
         $deliveryCharge = ($freeDeliveryMin > 0 && $subtotal >= $freeDeliveryMin) ? 0 : $baseDeliveryCharge;
-        $vatTax = round($subtotal * 0.05, 2); // 5% VAT
+        $vatTax = 0;
         $totalDiscount = $couponDiscount + $pointsDiscount;
-        $total = max(0, $subtotal - $totalDiscount) + $deliveryCharge + $vatTax;
+        $total = max(0, $subtotal - $totalDiscount) + $deliveryCharge;
 
         return view('checkout', compact(
             'cart', 'subtotal', 'deliveryCharge', 'vatTax', 'total', 'user',
@@ -150,9 +150,9 @@ class CheckoutController extends Controller
         } else {
             $deliveryCharge = 0;
         }
-        $vatTax = round($subtotal * 0.05, 2);
+        $vatTax = 0;
         $totalDiscount = $couponDiscount + $pointsDiscount;
-        $total = max(0, $subtotal - $totalDiscount) + $deliveryCharge + $vatTax;
+        $total = max(0, $subtotal - $totalDiscount) + $deliveryCharge;
 
         // Points earned from this order: sum of product reward points
         $pointsEarned = 0;
@@ -174,6 +174,28 @@ class CheckoutController extends Controller
 
         $orderNumber = 'ORD-' . strtoupper(Str::random(6));
 
+        $paymentOption = $request->input('payment_option', 'full'); // full, partial, due
+        if ($paymentOption === 'partial') {
+            $paidAmount = min($total, max(0, (float)$request->input('partial_amount', 0)));
+            $dueAmount = max(0, $total - $paidAmount);
+            $paymentStatus = ($dueAmount == 0) ? 'paid' : 'partial';
+        } elseif ($paymentOption === 'due') {
+            $paidAmount = 0;
+            $dueAmount = $total;
+            $paymentStatus = 'due';
+        } else {
+            // Full payment
+            if ($request->payment_method === 'cash') {
+                $paidAmount = 0;
+                $dueAmount = $total;
+                $paymentStatus = 'pending'; // Cash on delivery
+            } else {
+                $paidAmount = $total;
+                $dueAmount = 0;
+                $paymentStatus = 'paid';
+            }
+        }
+
         $order = Order::create([
             'order_number' => $orderNumber,
             'user_id' => $user ? $user->id : null,
@@ -192,8 +214,10 @@ class CheckoutController extends Controller
             'points_discount' => $pointsDiscount,
             'points_earned' => $pointsEarned,
             'total_amount' => $total,
+            'paid_amount' => $paidAmount,
+            'due_amount' => $dueAmount,
             'payment_method' => $request->payment_method,
-            'payment_status' => ($request->payment_method === 'cash') ? 'pending' : 'paid',
+            'payment_status' => $paymentStatus,
             'order_status' => 'pending',
             'special_instructions' => $request->special_instructions,
         ]);

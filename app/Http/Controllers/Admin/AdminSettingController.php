@@ -10,6 +10,7 @@ class AdminSettingController extends Controller
 {
     public function index()
     {
+        $siteName = Setting::getValue('site_name', 'Italian Pizza Hut');
         $logo = Setting::getValue('site_logo');
         $favicon = Setting::getValue('site_favicon');
         $pointRatePoints = (float) Setting::getValue('point_rate_points', 1);
@@ -17,12 +18,12 @@ class AdminSettingController extends Controller
         $minRedeemPoints = (int) Setting::getValue('min_redeem_points', 1);
         $siteAddress     = Setting::getValue('site_address', 'House 14, Road 11, Block D, Gulshan-2, Dhaka');
         $sitePhone       = Setting::getValue('site_phone', '+880 1711-223344');
-        $siteEmail       = Setting::getValue('site_email', 'contact@italianpizza.com');
+        $siteEmail       = Setting::getValue('site_email', 'contact@italianpizzahut.com');
         $openingHours    = Setting::getValue('opening_hours', 'Daily: 11:00 AM – 11:30 PM');
         $googleMapEmbed  = Setting::getValue('google_map_embed', '');
 
         return view('admin.settings.index', compact(
-            'logo', 'favicon', 'pointRatePoints', 'pointRateTaka', 'minRedeemPoints',
+            'siteName', 'logo', 'favicon', 'pointRatePoints', 'pointRateTaka', 'minRedeemPoints',
             'siteAddress', 'sitePhone', 'siteEmail', 'openingHours', 'googleMapEmbed'
         ));
     }
@@ -30,6 +31,7 @@ class AdminSettingController extends Controller
     public function updateGeneral(Request $request)
     {
         $request->validate([
+            'site_name'        => 'nullable|string|max:150',
             'site_address'     => 'nullable|string|max:500',
             'site_phone'       => 'nullable|string|max:100',
             'site_email'       => 'nullable|string|max:150',
@@ -37,13 +39,14 @@ class AdminSettingController extends Controller
             'google_map_embed' => 'nullable|string',
         ]);
 
+        Setting::setValue('site_name', $request->input('site_name', 'Italian Pizza Hut'));
         Setting::setValue('site_address', $request->input('site_address', ''));
         Setting::setValue('site_phone', $request->input('site_phone', ''));
         Setting::setValue('site_email', $request->input('site_email', ''));
         Setting::setValue('opening_hours', $request->input('opening_hours', ''));
         Setting::setValue('google_map_embed', $request->input('google_map_embed', ''));
 
-        return redirect()->route('admin.settings.index')->with('success', 'Address, contact information & Google map updated successfully!');
+        return redirect()->route('admin.settings.index')->with('success', 'Store details, contact information & settings updated successfully!');
     }
 
     public function pointsIndex()

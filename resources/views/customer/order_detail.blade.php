@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Order #' . $order->order_number . ' | Italian Pizza')
+@section('title', 'Order #' . $order->order_number . ' | Italian Pizza Hut')
 
 @push('styles')
 <style>

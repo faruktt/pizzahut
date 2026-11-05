@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AddOn;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderItemAddon;
@@ -38,10 +39,11 @@ class AdminOrderController extends Controller
             });
         }
 
-        $orders = $query->paginate(15);
+        $perPage = in_array((int)$request->input('per_page'), [10, 15, 25, 50, 100]) ? (int)$request->input('per_page') : 15;
+        $orders = $query->paginate($perPage)->withQueryString();
         $orderStatuses = OrderStatus::where('is_active', true)->orderBy('sort_order')->get();
 
-        return view('admin.orders.index', compact('orders', 'orderStatuses'));
+        return view('admin.orders.index', compact('orders', 'orderStatuses', 'perPage'));
     }
 
     public function show($id)
@@ -57,12 +59,30 @@ class AdminOrderController extends Controller
         $order = Order::findOrFail($id);
         $request->validate([
             'order_status' => 'required|string|max:50',
-            'payment_status' => 'nullable|in:pending,paid',
+            'payment_status' => 'nullable|in:pending,paid,partial,due',
+            'paid_amount' => 'nullable|numeric|min:0',
         ]);
 
         $order->order_status = $request->order_status;
         if ($request->filled('payment_status')) {
             $order->payment_status = $request->payment_status;
+            if ($request->payment_status === 'paid') {
+                $order->paid_amount = $order->total_amount;
+                $order->due_amount = 0;
+            } elseif ($request->payment_status === 'due') {
+                $order->paid_amount = 0;
+                $order->due_amount = $order->total_amount;
+            }
+        }
+
+        if ($request->filled('paid_amount')) {
+            $order->paid_amount = (float)$request->paid_amount;
+            $order->due_amount = max(0, $order->total_amount - $order->paid_amount);
+            if ($order->due_amount == 0) {
+                $order->payment_status = 'paid';
+            } elseif ($order->paid_amount > 0) {
+                $order->payment_status = 'partial';
+            }
         }
 
         // If completed or cancelled and was dine-in, free table
@@ -85,7 +105,8 @@ class AdminOrderController extends Controller
     {
         $products = Product::where('is_active', true)->with(['sizes', 'crusts'])->get();
         $tables = RestaurantTable::where('status', 'available')->get();
-        return view('admin.orders.create', compact('products', 'tables'));
+        $addons = AddOn::where('is_active', true)->get();
+        return view('admin.orders.create', compact('products', 'tables', 'addons'));
     }
 
     public function store(Request $request)
@@ -99,31 +120,65 @@ class AdminOrderController extends Controller
 
         $subtotal = 0;
         foreach ($request->items as $item) {
-            $subtotal += ($item['unit_price'] * $item['quantity']);
+            $subtotal += ((float)$item['unit_price'] * (int)$item['quantity']);
         }
 
         $baseDeliveryCharge = Setting::getDeliveryCharge();
         $freeDeliveryMin = (float) Setting::getValue('free_delivery_min', 0);
         $deliveryCharge = ($request->order_type === 'delivery') ? (($freeDeliveryMin > 0 && $subtotal >= $freeDeliveryMin) ? 0 : $baseDeliveryCharge) : 0;
-        $vatTax = round($subtotal * 0.05, 2);
-        $total = $subtotal + $deliveryCharge + $vatTax;
+        $vatTax = 0;
+        $total = $subtotal + $deliveryCharge;
 
         $initialStatus = OrderStatus::where('is_default', true)->value('slug') ?? 'preparing';
+
+        $paymentStatus = $request->payment_status ?? 'paid';
+        if ($paymentStatus === 'paid') {
+            $paidAmount = $total;
+            $dueAmount = 0;
+        } elseif ($paymentStatus === 'due') {
+            $paidAmount = 0;
+            $dueAmount = $total;
+        } else {
+            $paidAmount = min($total, max(0, (float)$request->input('paid_amount', 0)));
+            $dueAmount = max(0, $total - $paidAmount);
+            if ($dueAmount == 0) $paymentStatus = 'paid';
+        }
+
+        // Auto associate user or create customer if phone provided
+        $customerPhone = $request->customer_phone ?: null;
+        $customerName = $request->customer_name ?: 'Walk-in Customer';
+        $userId = null;
+        if ($customerPhone && !in_array(strtolower($customerPhone), ['walk-in', 'n/a', 'none', ''])) {
+            $user = User::where('phone', $customerPhone)->first();
+            if (!$user && $customerName && !in_array(strtolower($customerName), ['walk-in', 'walk-in customer'])) {
+                $user = User::create([
+                    'name' => $customerName,
+                    'phone' => $customerPhone,
+                ]);
+            }
+            if ($user) {
+                $userId = $user->id;
+                $customerName = $user->name ?: $customerName;
+            }
+        }
 
         $order = Order::create([
             'order_number' => 'ORD-' . strtoupper(Str::random(6)),
             'admin_id' => Auth::guard('admin')->id(),
+            'user_id' => $userId,
             'order_type' => $request->order_type,
             'restaurant_table_id' => $request->restaurant_table_id,
-            'customer_name' => $request->customer_name ?: 'Walk-in Customer',
-            'customer_phone' => $request->customer_phone ?: 'N/A',
+            'customer_name' => $customerName,
+            'customer_phone' => $customerPhone ?: 'Walk-in',
             'customer_address' => $request->customer_address,
             'subtotal' => $subtotal,
             'delivery_charge' => $deliveryCharge,
             'vat_tax' => $vatTax,
             'total_amount' => $total,
+            'paid_amount' => $paidAmount,
+            'due_amount' => $dueAmount,
             'payment_method' => $request->payment_method ?? 'cash',
-            'payment_status' => $request->payment_status ?? 'paid',
+            'payment_status' => $paymentStatus,
             'order_status' => $initialStatus,
             'special_instructions' => $request->special_instructions,
         ]);
@@ -133,18 +188,35 @@ class AdminOrderController extends Controller
         }
 
         foreach ($request->items as $item) {
-            OrderItem::create([
+            $product = isset($item['product_id']) ? Product::find($item['product_id']) : null;
+            $prodName = $product ? $product->name : ($item['product_name'] ?? 'Item');
+
+            $orderItem = OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $item['product_id'] ?? null,
-                'product_name' => $item['product_name'],
-                'size_name' => $item['size_name'] ?? 'Regular',
-                'crust_name' => $item['crust_name'] ?? 'Pan Crust',
-                'unit_price' => $item['unit_price'],
-                'quantity' => $item['quantity'],
-                'total_price' => $item['unit_price'] * $item['quantity'],
+                'product_name' => $prodName,
+                'size_name' => !empty($item['size_name']) ? $item['size_name'] : null,
+                'crust_name' => !empty($item['crust_name']) ? $item['crust_name'] : null,
+                'unit_price' => (float)$item['unit_price'],
+                'quantity' => (int)$item['quantity'],
+                'total_price' => (float)$item['unit_price'] * (int)$item['quantity'],
             ]);
+
+            // Save Addons if selected
+            if (!empty($item['addons']) && is_array($item['addons'])) {
+                foreach ($item['addons'] as $addonId) {
+                    $addon = AddOn::find($addonId);
+                    if ($addon) {
+                        OrderItemAddon::create([
+                            'order_item_id' => $orderItem->id,
+                            'add_on_name' => $addon->name,
+                            'price' => $addon->price,
+                        ]);
+                    }
+                }
+            }
         }
 
-        return redirect()->route('admin.orders.show', $order->id)->with('success', 'Order created successfully without customer registration!');
+        return redirect()->route('admin.orders.show', $order->id)->with('success', 'Order created successfully!');
     }
 }
