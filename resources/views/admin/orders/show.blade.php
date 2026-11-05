@@ -514,14 +514,14 @@
                     {{ $stName }}
                 </span>
                 <span class="badge {{ $order->payment_status === 'paid' ? 'badge-completed' : 'badge-pending' }}" style="font-size:0.8rem; padding:4px 10px;">
-                    Payment: {{ ucfirst($order->payment_status) }}
+                    Payment: {{ ucfirst($order->payment_status) }} ({{ strtoupper($order->payment_method ?? 'Cash') }})
                 </span>
             </div>
 
             <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0;">
                 @csrf
                 <label style="font-size: 0.82rem; font-weight:700;">Update Status:</label>
-                <select name="order_status" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600; min-width:140px;">
+                <select name="order_status" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600; min-width:140px;" title="Order Status">
                     @foreach($orderStatuses as $statusItem)
                         <option value="{{ $statusItem->slug }}" {{ $order->order_status === $statusItem->slug ? 'selected' : '' }}>
                             {{ $statusItem->name }}
@@ -532,14 +532,29 @@
                     @endif
                 </select>
 
-                <select name="payment_status" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600;">
+                <select name="payment_status" id="orderPaymentStatusSelect" onchange="onPaymentStatusChange(this.value)" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600;" title="Payment Status">
+                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Paid</option>
                     <option value="partial" {{ $order->payment_status === 'partial' ? 'selected' : '' }}>Partial</option>
                     <option value="due" {{ $order->payment_status === 'due' ? 'selected' : '' }}>Due (Unpaid)</option>
-                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Pending</option>
                 </select>
 
-                <input type="number" step="0.01" min="0" name="paid_amount" value="{{ (float)$order->paid_amount }}" class="form-control" placeholder="Paid (৳)" style="width:110px; padding:6px 10px; font-size:0.82rem;" title="Paid Amount (৳)">
+                <input type="number" step="0.01" min="0" id="orderPaidAmountInput" name="paid_amount" value="{{ (float)$order->paid_amount }}" class="form-control" placeholder="Paid (৳)" style="width:110px; padding:6px 10px; font-size:0.82rem;" title="Paid Amount (৳)">
+
+                @php
+                    $curMethod = strtolower($order->payment_method ?? 'cash');
+                @endphp
+                <select name="payment_method" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600; min-width:130px;" title="Payment Method">
+                    <option value="cash" {{ $curMethod === 'cash' ? 'selected' : '' }}>💵 Cash</option>
+                    <option value="bank" {{ $curMethod === 'bank' ? 'selected' : '' }}>🏦 Bank</option>
+                    <option value="card" {{ $curMethod === 'card' ? 'selected' : '' }}>💳 Card</option>
+                    <option value="bkash" {{ $curMethod === 'bkash' ? 'selected' : '' }}>📱 bKash</option>
+                    <option value="nagad" {{ $curMethod === 'nagad' ? 'selected' : '' }}>📱 Nagad</option>
+                    <option value="rocket" {{ $curMethod === 'rocket' ? 'selected' : '' }}>📱 Rocket</option>
+                    @if(!in_array($curMethod, ['cash', 'bank', 'card', 'bkash', 'nagad', 'rocket']) && !empty($order->payment_method))
+                        <option value="{{ $curMethod }}" selected>{{ ucfirst($order->payment_method) }}</option>
+                    @endif
+                </select>
 
                 <button type="submit" class="btn-quick-pos" style="padding: 6px 14px; font-size: 0.82rem;">
                     <i class="fa-solid fa-check"></i> Save
@@ -617,6 +632,7 @@
                     <p><strong>Invoice No:</strong> #{{ $order->order_number }}</p>
                     <p><strong>Order Status:</strong> {{ ucfirst(str_replace('_', ' ', $order->order_status)) }}</p>
                     <p><strong>Payment Status:</strong> {{ ucfirst($order->payment_status) }}</p>
+                    <p><strong>Payment Method:</strong> {{ strtoupper($order->payment_method ?? 'Cash') }}</p>
                     @if($order->special_instructions)
                         <p><strong>Instructions:</strong> {{ $order->special_instructions }}</p>
                     @endif
@@ -742,7 +758,7 @@
                         <span>৳ {{ number_format($order->total_amount) }}</span>
                     </div>
                     <div class="calc-row" style="margin-top:6px; font-size:0.9rem;">
-                        <span>Paid Cash:</span>
+                        <span>Paid ({{ strtoupper($order->payment_method ?? 'Cash') }}):</span>
                         <strong style="color:#16a34a;">৳ {{ number_format($order->paid_amount, 2) }}</strong>
                     </div>
                     @if($order->due_amount > 0)
@@ -936,6 +952,17 @@
 <script>
     const defaultPrintMode = '{{ $isPosOrTakeaway ? "pos-58" : "a4" }}';
     document.body.classList.add('mode-' + defaultPrintMode);
+
+    function onPaymentStatusChange(status) {
+        const paidInput = document.getElementById('orderPaidAmountInput');
+        if (!paidInput) return;
+        const totalAmount = {{ (float)$order->total_amount }};
+        if (status === 'paid') {
+            paidInput.value = totalAmount;
+        } else if (status === 'due' || status === 'pending') {
+            paidInput.value = 0;
+        }
+    }
 
     function printPosInvoice(size = '58mm') {
         document.body.classList.remove('mode-a4', 'mode-pos', 'mode-pos-58', 'mode-pos-80');

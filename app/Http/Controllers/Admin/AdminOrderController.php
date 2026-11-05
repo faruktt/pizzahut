@@ -61,27 +61,66 @@ class AdminOrderController extends Controller
             'order_status' => 'required|string|max:50',
             'payment_status' => 'nullable|in:pending,paid,partial,due',
             'paid_amount' => 'nullable|numeric|min:0',
+            'payment_method' => 'nullable|string|max:50',
         ]);
 
         $order->order_status = $request->order_status;
-        if ($request->filled('payment_status')) {
-            $order->payment_status = $request->payment_status;
-            if ($request->payment_status === 'paid') {
-                $order->paid_amount = $order->total_amount;
-                $order->due_amount = 0;
-            } elseif ($request->payment_status === 'due') {
-                $order->paid_amount = 0;
-                $order->due_amount = $order->total_amount;
-            }
+
+        // Update Payment Method
+        if ($request->filled('payment_method')) {
+            $order->payment_method = strtolower($request->payment_method);
         }
 
-        if ($request->filled('paid_amount')) {
-            $order->paid_amount = (float)$request->paid_amount;
-            $order->due_amount = max(0, $order->total_amount - $order->paid_amount);
-            if ($order->due_amount == 0) {
+        // Payment status & amount logic
+        if ($request->filled('payment_status')) {
+            $newStatus = $request->payment_status;
+            if ($newStatus === 'paid') {
                 $order->payment_status = 'paid';
-            } elseif ($order->paid_amount > 0) {
+                $order->paid_amount = $order->total_amount;
+                $order->due_amount = 0;
+            } elseif ($newStatus === 'due') {
+                $order->payment_status = 'due';
+                $order->paid_amount = 0;
+                $order->due_amount = $order->total_amount;
+            } elseif ($newStatus === 'pending') {
+                $order->payment_status = 'pending';
+                if ($request->filled('paid_amount') && (float)$request->paid_amount > 0) {
+                    $order->paid_amount = (float)$request->paid_amount;
+                    $order->due_amount = max(0, $order->total_amount - $order->paid_amount);
+                } else {
+                    $order->paid_amount = 0;
+                    $order->due_amount = $order->total_amount;
+                }
+            } elseif ($newStatus === 'partial') {
+                $paid = (float)$request->input('paid_amount', 0);
+                if ($paid >= $order->total_amount) {
+                    $order->payment_status = 'paid';
+                    $order->paid_amount = $order->total_amount;
+                    $order->due_amount = 0;
+                } elseif ($paid <= 0) {
+                    $order->payment_status = 'due';
+                    $order->paid_amount = 0;
+                    $order->due_amount = $order->total_amount;
+                } else {
+                    $order->payment_status = 'partial';
+                    $order->paid_amount = $paid;
+                    $order->due_amount = max(0, $order->total_amount - $paid);
+                }
+            }
+        } elseif ($request->filled('paid_amount')) {
+            $paid = (float)$request->paid_amount;
+            if ($paid >= $order->total_amount) {
+                $order->payment_status = 'paid';
+                $order->paid_amount = $order->total_amount;
+                $order->due_amount = 0;
+            } elseif ($paid <= 0) {
+                $order->payment_status = 'due';
+                $order->paid_amount = 0;
+                $order->due_amount = $order->total_amount;
+            } else {
                 $order->payment_status = 'partial';
+                $order->paid_amount = $paid;
+                $order->due_amount = max(0, $order->total_amount - $paid);
             }
         }
 
@@ -95,7 +134,7 @@ class AdminOrderController extends Controller
         $statusObj = OrderStatus::findBySlugOrName($request->order_status);
         $statusName = $statusObj ? $statusObj->name : ucfirst(str_replace('_', ' ', $order->order_status));
 
-        return back()->with('success', "Order #{$order->order_number} status updated to \"{$statusName}\".");
+        return back()->with('success', "Order #{$order->order_number} details updated successfully.");
     }
 
     /**
