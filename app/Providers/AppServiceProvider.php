@@ -22,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Set default application timezone to Bangladesh (Asia/Dhaka)
+        date_default_timezone_set(config('app.timezone', 'Asia/Dhaka'));
+
         // Use custom clean pagination view for all admin and system links()
         Paginator::defaultView('vendor.pagination.admin');
         Paginator::defaultSimpleView('vendor.pagination.admin');
