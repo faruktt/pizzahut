@@ -532,15 +532,6 @@
                     @endif
                 </select>
 
-                <select name="payment_status" id="orderPaymentStatusSelect" onchange="onPaymentStatusChange(this.value)" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600;" title="Payment Status">
-                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Paid</option>
-                    <option value="partial" {{ $order->payment_status === 'partial' ? 'selected' : '' }}>Partial</option>
-                    <option value="due" {{ $order->payment_status === 'due' ? 'selected' : '' }}>Due (Unpaid)</option>
-                </select>
-
-                <input type="number" step="0.01" min="0" id="orderPaidAmountInput" name="paid_amount" value="{{ (float)$order->paid_amount }}" class="form-control" placeholder="Paid (৳)" style="width:110px; padding:6px 10px; font-size:0.82rem;" title="Paid Amount (৳)">
-
                 @php
                     $curMethod = strtolower($order->payment_method ?? 'cash');
                 @endphp
@@ -555,6 +546,15 @@
                         <option value="{{ $curMethod }}" selected>{{ ucfirst($order->payment_method) }}</option>
                     @endif
                 </select>
+
+                <select name="payment_status" id="orderPaymentStatusSelect" onchange="onPaymentStatusChange(this.value)" class="form-control" style="padding: 6px 12px; font-size: 0.82rem; font-weight:600;" title="Payment Status">
+                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Paid</option>
+                    <option value="partial" {{ $order->payment_status === 'partial' ? 'selected' : '' }}>Partial</option>
+                    <option value="due" {{ $order->payment_status === 'due' ? 'selected' : '' }}>Due (Unpaid)</option>
+                </select>
+
+                <input type="number" step="0.01" min="0" id="orderPaidAmountInput" name="paid_amount" value="{{ (float)$order->paid_amount }}" class="form-control" placeholder="Paid (৳)" style="width:110px; padding:6px 10px; font-size:0.82rem;" title="Paid Amount (৳)">
 
                 <button type="submit" class="btn-quick-pos" style="padding: 6px 14px; font-size: 0.82rem;">
                     <i class="fa-solid fa-check"></i> Save
