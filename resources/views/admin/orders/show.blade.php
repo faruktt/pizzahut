@@ -310,7 +310,8 @@
     }
 
     /* Hidden on normal screen */
-    .pos-receipt-print-only {
+    .pos-receipt-print-only,
+    .kot-receipt-print-only {
         display: none;
     }
 
@@ -329,6 +330,14 @@
             display: none !important;
         }
 
+        /* Hide non-active print blocks */
+        body.mode-pos-58 .kot-receipt-print-only,
+        body.mode-pos-80 .kot-receipt-print-only,
+        body.mode-pos .kot-receipt-print-only,
+        body.mode-a4 .kot-receipt-print-only {
+            display: none !important;
+        }
+
         /* 1. POS 58mm Thermal Receipt Print Mode (Default for standard mini thermal printers) */
         body.mode-pos-58 @page,
         body.mode-pos @page {
@@ -337,8 +346,10 @@
         }
         body.mode-pos-58 .a4-sheet,
         body.mode-pos-58 .invoice-card,
+        body.mode-pos-58 .kot-receipt-print-only,
         body.mode-pos .a4-sheet,
-        body.mode-pos .invoice-card {
+        body.mode-pos .invoice-card,
+        body.mode-pos .kot-receipt-print-only {
             display: none !important;
         }
         body.mode-pos-58 .pos-receipt-print-only,
@@ -366,7 +377,8 @@
             margin: 0mm !important;
         }
         body.mode-pos-80 .a4-sheet,
-        body.mode-pos-80 .invoice-card {
+        body.mode-pos-80 .invoice-card,
+        body.mode-pos-80 .kot-receipt-print-only {
             display: none !important;
         }
         body.mode-pos-80 .pos-receipt-print-only {
@@ -391,7 +403,8 @@
             size: A4 portrait;
             margin: 10mm 14mm;
         }
-        body.mode-a4 .pos-receipt-print-only {
+        body.mode-a4 .pos-receipt-print-only,
+        body.mode-a4 .kot-receipt-print-only {
             display: none !important;
         }
         body.mode-a4 .invoice-page-wrapper {
@@ -435,6 +448,60 @@
         body.mode-a4 .calc-grand-total {
             color: #000000 !important;
             border-top: 2px solid #000000 !important;
+        }
+
+        /* 4. KOT 58mm Kitchen Ticket Print Mode */
+        body.mode-kot-58 @page {
+            size: 58mm auto;
+            margin: 0mm !important;
+        }
+        body.mode-kot-58 .a4-sheet,
+        body.mode-kot-58 .invoice-card,
+        body.mode-kot-58 .pos-receipt-print-only {
+            display: none !important;
+        }
+        body.mode-kot-58 .kot-receipt-print-only {
+            display: block !important;
+            width: 48mm !important;
+            max-width: 48mm !important;
+            margin: 0 auto !important;
+            padding: 1mm 1mm !important;
+            box-sizing: border-box !important;
+        }
+        body.mode-kot-58 .kot-receipt-print-only .kot-wrap {
+            width: 48mm !important;
+            max-width: 48mm !important;
+            font-size: 9.5px !important;
+            line-height: 1.28 !important;
+            padding: 1mm !important;
+            box-sizing: border-box !important;
+        }
+
+        /* 5. KOT 80mm Kitchen Ticket Print Mode */
+        body.mode-kot-80 @page {
+            size: 80mm auto;
+            margin: 0mm !important;
+        }
+        body.mode-kot-80 .a4-sheet,
+        body.mode-kot-80 .invoice-card,
+        body.mode-kot-80 .pos-receipt-print-only {
+            display: none !important;
+        }
+        body.mode-kot-80 .kot-receipt-print-only {
+            display: block !important;
+            width: 72mm !important;
+            max-width: 72mm !important;
+            margin: 0 auto !important;
+            padding: 2mm 2mm !important;
+            box-sizing: border-box !important;
+        }
+        body.mode-kot-80 .kot-receipt-print-only .kot-wrap {
+            width: 72mm !important;
+            max-width: 72mm !important;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+            padding: 2mm !important;
+            box-sizing: border-box !important;
         }
     }
 </style>
@@ -492,9 +559,30 @@
                         <i class="fa-solid fa-receipt"></i> POS (80mm)
                     </button>
                 @endif
+
+                <!-- Kitchen View & KOT Print Options -->
+                <button type="button" onclick="printKotInvoice('58mm')" class="btn-view-store" style="padding: 8px 12px; font-size: 0.85rem; background:#fff7ed; border:1.5px solid #f97316; color:#c2410c; font-weight:700; cursor:pointer;" title="Print Kitchen Order Ticket (58mm KOT)">
+                    <i class="fa-solid fa-utensils"></i> Print KOT (58mm)
+                </button>
+                <button type="button" onclick="printKotInvoice('80mm')" class="btn-view-store" style="padding: 8px 12px; font-size: 0.85rem; background:#fff7ed; border:1.5px solid #fdba74; color:#c2410c; font-weight:700; cursor:pointer;" title="Print Kitchen Order Ticket (80mm KOT)">
+                    <i class="fa-solid fa-fire-burner"></i> KOT (80mm)
+                </button>
+                <button type="button" onclick="openKotModal()" class="btn-view-store" style="padding: 8px 12px; font-size: 0.85rem; background:#f0fdf4; border:1.5px solid #86efac; color:#166534; font-weight:700; cursor:pointer;" title="View Kitchen Ticket (KOT) on screen">
+                    <i class="fa-solid fa-eye"></i> Kitchen View (KOT)
+                </button>
+
                 <a href="{{ route('admin.orders.index') }}" class="btn-view-store" style="padding: 8px 14px; font-size: 0.85rem;">
                     <i class="fa-solid fa-arrow-left"></i> Back to Orders
                 </a>
+
+                <!-- Delete Order Button -->
+                <form action="{{ route('admin.orders.destroy', $order->id) }}" method="POST" style="display:inline; margin:0;" onsubmit="return confirm('⚠️ Are you sure you want to permanently delete order #{{ $order->order_number }}?\nThis cannot be undone.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" style="padding: 8px 12px; font-size: 0.85rem; background:#fee2e2; border:1.5px solid #fca5a5; color:#b91c1c; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:5px;" title="Delete this order">
+                        <i class="fa-solid fa-trash-can"></i> Delete Order
+                    </button>
+                </form>
             </div>
         </div>
 
@@ -946,6 +1034,54 @@
         </div>
     </div>
 </div>
+
+<!-- ============================================== -->
+<!-- KITCHEN ORDER TICKET (KOT) THERMAL PRINT BLOCK -->
+<!-- ============================================== -->
+<div class="kot-receipt-print-only">
+    @include('admin.orders.partials.kot_content', ['order' => $order])
+</div>
+
+<!-- ============================================== -->
+<!-- KITCHEN VIEW (KOT) ON-SCREEN MODAL PREVIEW     -->
+<!-- ============================================== -->
+<div id="kotModal" class="no-print" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(3px); justify-content:center; align-items:center; padding:16px;">
+    <div style="background:#ffffff; width:100%; max-width:440px; border-radius:12px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.3); overflow:hidden; max-height:92vh; display:flex; flex-direction:column;">
+        <!-- Modal Header -->
+        <div style="padding:14px 18px; background:#1e293b; color:#ffffff; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-utensils" style="color:#f97316;"></i>
+                <strong style="font-size:0.95rem;">Kitchen Order Ticket (KOT)</strong>
+            </div>
+            <button type="button" onclick="closeKotModal()" style="background:transparent; border:none; color:#cbd5e1; font-size:1.4rem; cursor:pointer; padding:0 4px; line-height:1;">&times;</button>
+        </div>
+
+        <!-- Modal Toolbar -->
+        <div style="padding:10px 16px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span style="font-size:0.8rem; color:#64748b; font-weight:600;">Print to Kitchen:</span>
+            <div style="display:flex; gap:6px;">
+                <button type="button" onclick="printKotInvoice('58mm')" style="background:#f97316; color:#ffffff; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:700; cursor:pointer;">
+                    <i class="fa-solid fa-print"></i> 58mm KOT
+                </button>
+                <button type="button" onclick="printKotInvoice('80mm')" style="background:#ea580c; color:#ffffff; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:700; cursor:pointer;">
+                    <i class="fa-solid fa-print"></i> 80mm KOT
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body (The KOT Ticket Preview) -->
+        <div style="padding:16px; overflow-y:auto; flex:1; background:#f1f5f9; display:flex; justify-content:center;">
+            <div style="background:#ffffff; width:100%; max-width:340px; padding:16px 14px; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); border:1px solid #cbd5e1;">
+                @include('admin.orders.partials.kot_content', ['order' => $order])
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div style="padding:10px 16px; background:#f8fafc; border-top:1px solid #e2e8f0; text-align:right;">
+            <button type="button" onclick="closeKotModal()" style="background:#64748b; color:#fff; border:none; padding:6px 16px; border-radius:6px; font-size:0.82rem; cursor:pointer;">Close</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('admin-scripts')
@@ -965,20 +1101,49 @@
     }
 
     function printPosInvoice(size = '58mm') {
-        document.body.classList.remove('mode-a4', 'mode-pos', 'mode-pos-58', 'mode-pos-80');
+        document.body.classList.remove('mode-a4', 'mode-pos', 'mode-pos-58', 'mode-pos-80', 'mode-kot-58', 'mode-kot-80');
         const modeClass = (size === '80mm') ? 'mode-pos-80' : 'mode-pos-58';
         document.body.classList.add(modeClass);
         window.print();
     }
 
     function printA4Invoice() {
-        document.body.classList.remove('mode-pos', 'mode-pos-58', 'mode-pos-80');
+        document.body.classList.remove('mode-pos', 'mode-pos-58', 'mode-pos-80', 'mode-kot-58', 'mode-kot-80');
         document.body.classList.add('mode-a4');
         window.print();
     }
 
+    function printKotInvoice(size = '58mm') {
+        document.body.classList.remove('mode-a4', 'mode-pos', 'mode-pos-58', 'mode-pos-80', 'mode-kot-58', 'mode-kot-80');
+        const modeClass = (size === '80mm') ? 'mode-kot-80' : 'mode-kot-58';
+        document.body.classList.add(modeClass);
+        window.print();
+    }
+
+    function openKotModal() {
+        const modal = document.getElementById('kotModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeKotModal() {
+        const modal = document.getElementById('kotModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('kotModal');
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
     window.onafterprint = function() {
-        document.body.classList.remove('mode-pos', 'mode-pos-58', 'mode-pos-80', 'mode-a4');
+        document.body.classList.remove('mode-pos', 'mode-pos-58', 'mode-pos-80', 'mode-kot-58', 'mode-kot-80', 'mode-a4');
         document.body.classList.add('mode-' + defaultPrintMode);
     };
 </script>

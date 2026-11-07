@@ -128,6 +128,7 @@ Route::prefix('admin')->middleware(AdminAuthenticate::class)->group(function () 
     Route::post('/orders', [AdminOrderController::class, 'store'])->name('admin.orders.store');
     Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('admin.orders.show');
     Route::post('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
+    Route::delete('/orders/{id}', [AdminOrderController::class, 'destroy'])->name('admin.orders.destroy');
 
     // Dynamic Order Statuses CRUD
     Route::get('/order-statuses', [\App\Http\Controllers\Admin\AdminOrderStatusController::class, 'index'])->name('admin.order-statuses.index');

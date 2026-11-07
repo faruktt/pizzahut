@@ -151,9 +151,18 @@
                             </form>
                         </td>
                         <td>
-                            <a href="{{ route('admin.orders.show', $ord->id) }}" class="btn-view-store" style="padding: 4px 10px; font-size: 0.75rem;">
-                                View Details <i class="fa-solid fa-angle-right"></i>
-                            </a>
+                            <div style="display:inline-flex; align-items:center; gap:6px;">
+                                <a href="{{ route('admin.orders.show', $ord->id) }}" class="btn-view-store" style="padding: 5px 10px; font-size: 0.75rem; white-space:nowrap;">
+                                    View Details <i class="fa-solid fa-angle-right"></i>
+                                </a>
+                                <form action="{{ route('admin.orders.destroy', $ord->id) }}" method="POST" style="margin:0; display:inline;" onsubmit="return confirm('Are you sure you want to delete order #{{ $ord->order_number }}? This cannot be undone.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:5px 8px; font-size:0.75rem; border-radius:6px; cursor:pointer; line-height:1;" title="Delete Order #{{ $ord->order_number }}">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty

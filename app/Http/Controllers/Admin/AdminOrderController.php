@@ -137,6 +137,42 @@ class AdminOrderController extends Controller
         return back()->with('success', "Order #{$order->order_number} details updated successfully.");
     }
 
+    public function destroy($id)
+    {
+        $order = Order::findOrFail($id);
+        $orderNumber = $order->order_number;
+
+        // If dine-in order with a table, release table if no other active order is on that table
+        if ($order->order_type === 'dine_in' && $order->restaurant_table_id) {
+            $otherActive = Order::where('restaurant_table_id', $order->restaurant_table_id)
+                ->where('id', '!=', $order->id)
+                ->whereNotIn('order_status', ['completed', 'cancelled'])
+                ->exists();
+            if (!$otherActive) {
+                RestaurantTable::where('id', $order->restaurant_table_id)->update(['status' => 'available']);
+            }
+        }
+
+        // Delete items and their addons
+        foreach ($order->items as $item) {
+            $item->addons()->delete();
+            $item->delete();
+        }
+
+        // Delete associated due payments if any
+        if (method_exists($order, 'duePayments')) {
+            $order->duePayments()->delete();
+        }
+
+        $order->delete();
+
+        if (url()->previous() === route('admin.orders.show', $id)) {
+            return redirect()->route('admin.orders.index')->with('success', "Order #{$orderNumber} deleted successfully.");
+        }
+
+        return back()->with('success', "Order #{$orderNumber} deleted successfully.");
+    }
+
     /**
      * Create order directly by admin/cashier without requiring customer account.
      */
