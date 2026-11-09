@@ -3,8 +3,32 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'Italian Pizza Hut | Online Delivery')</title>
-    <meta name="description" content="Order the best pan pizza, deals, pasta, and sides online. Fast delivery and takeaway across Bangladesh.">
+    <title>@yield('title', 'Italian Pizza Hut | Order Best Pizzas & Deals Online')</title>
+    <meta name="description" content="@yield('meta_description', 'Order the best pan pizza, deals, pasta, and sides online. Authentic oven-baked taste with fast delivery and takeaway in Gulshan-2, Dhaka.')">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    <!-- Open Graph / Facebook Meta Tags -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:site_name" content="{{ $siteName ?? 'Italian Pizza Hut' }}">
+    <meta property="og:title" content="@yield('og_title', 'Italian Pizza Hut | Order Best Pizzas & Deals Online')">
+    <meta property="og:description" content="@yield('og_description', 'Order the best pan pizza, deals, pasta, and sides online. Authentic oven-baked taste with fast delivery and takeaway in Gulshan-2, Dhaka.')">
+    <meta property="og:image" content="@yield('og_image', $defaultOgImage ?? asset('uploads/banners/1793805938_Promotional Banner-1.jpg'))">
+    <meta property="og:image:secure_url" content="@yield('og_image', $defaultOgImage ?? asset('uploads/banners/1793805938_Promotional Banner-1.jpg'))">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Italian Pizza Hut - Delicious Oven Baked Pizza">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:title" content="@yield('og_title', 'Italian Pizza Hut | Order Best Pizzas & Deals Online')">
+    <meta name="twitter:description" content="@yield('og_description', 'Order the best pan pizza, deals, pasta, and sides online. Authentic oven-baked taste with fast delivery and takeaway in Gulshan-2, Dhaka.')">
+    <meta name="twitter:image" content="@yield('og_image', $defaultOgImage ?? asset('uploads/banners/1793805938_Promotional Banner-1.jpg'))">
 
     {{-- Favicon (manageable from admin panel) --}}
     @if(!empty($siteFavicon))
