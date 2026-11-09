@@ -589,15 +589,23 @@ function renderSummary() {
     ).join('');
 }
 
-const isCustomerLoggedIn = {{ Auth::guard('web')->check() ? 'true' : 'false' }};
-const customerLoginUrl = "{{ route('login') }}";
+// Fire ViewContent on combo page load
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof window.trackEcommerceEvent === 'function') {
+        window.trackEcommerceEvent('view_item', {
+            currency: 'BDT',
+            value: {{ (float) $combo->price }},
+            items: [{
+                item_id: 'COMBO-{{ $combo->id }}',
+                item_name: '{{ addslashes($combo->name) }}',
+                item_category: 'Combos',
+                price: {{ (float) $combo->price }}
+            }]
+        });
+    }
+});
 
 function submitCombo() {
-    if (!isCustomerLoggedIn) {
-        window.location.href = customerLoginUrl;
-        return;
-    }
-
     const items = Object.values(selectedItems);
     if (items.length === 0) {
         showToast('Please select at least 1 item!', 'error');
@@ -612,6 +620,21 @@ function submitCombo() {
         html += `<input type="hidden" name="selected_items[${idx}][crust]" value="${item.crust || 'Pan Crust'}">`;
     });
     formInputsEl.innerHTML = html;
+
+    // Fire AddToCart event (dataLayer + Meta Pixel)
+    if (typeof window.trackEcommerceEvent === 'function') {
+        window.trackEcommerceEvent('add_to_cart', {
+            currency: 'BDT',
+            value: {{ (float) $combo->price }},
+            items: [{
+                item_id: 'COMBO-{{ $combo->id }}',
+                item_name: '{{ addslashes($combo->name) }}',
+                item_category: 'Combos',
+                price: {{ (float) $combo->price }},
+                quantity: 1
+            }]
+        });
+    }
 
     showToast('Adding to cart...', 'success');
     setTimeout(() => document.getElementById('comboOrderForm').submit(), 500);

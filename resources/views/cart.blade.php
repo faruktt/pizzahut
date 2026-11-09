@@ -733,14 +733,13 @@
                 </div>
 
                 @if(!empty($cart))
-                    @if(Auth::guard('web')->check())
-                        <a href="{{ route('checkout.index') }}" class="btn-review-checkout" style="display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                            <span>Review payment & address</span> <i class="fa-solid fa-arrow-right"></i>
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}" class="btn-review-checkout" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; background: #e52d27;">
-                            <i class="fa-solid fa-lock"></i> <span>Login to Complete Order</span> <i class="fa-solid fa-arrow-right"></i>
-                        </a>
+                    <a href="{{ route('checkout.index') }}" class="btn-review-checkout" style="display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                        <span>Review payment & address</span> <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                    @if(!Auth::guard('web')->check())
+                        <div style="text-align:center; margin-top:10px; font-size:0.78rem; color:#64748b;">
+                            কোনো অ্যাকাউন্ট ছাড়াই সরাসরি অর্ডার করতে পারবেন! একাউন্ট থাকলে <a href="{{ route('login') }}" style="color:var(--brand-red); font-weight:700; text-decoration:underline;">লগইন করুন</a>
+                        </div>
                     @endif
                 @else
                     <button type="button" class="btn-review-checkout" disabled style="opacity: 0.6; cursor: not-allowed;">
@@ -1110,12 +1109,7 @@
     const isCustomerLoggedIn = {{ Auth::guard('web')->check() ? 'true' : 'false' }};
     const customerLoginUrl = "{{ route('login') }}";
 
-    function quickAddSide(sideId, name) {
-        if (!isCustomerLoggedIn) {
-            window.location.href = customerLoginUrl;
-            return;
-        }
-
+    function quickAddSide(sideId, name, price = 0) {
         fetch('{{ route("cart.add") }}', {
             method: 'POST',
             headers: {
@@ -1125,24 +1119,31 @@
             },
             body: JSON.stringify({ product_id: sideId, quantity: 1 })
         })
-        .then(res => {
-            if (res.status === 401) {
-                window.location.href = customerLoginUrl;
-                throw new Error('Unauthenticated');
-            }
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
-            if (data.status === 'auth_required') {
-                window.location.href = data.redirect || customerLoginUrl;
-                return;
-            }
             if (data.success) {
+                if (typeof window.trackEcommerceEvent === 'function') {
+                    window.trackEcommerceEvent('add_to_cart', {
+                        currency: 'BDT',
+                        value: price || 0,
+                        items: [{
+                            item_id: sideId,
+                            item_name: name || 'Side Item',
+                            item_category: 'Sides',
+                            price: price || 0,
+                            quantity: 1
+                        }]
+                    });
+                }
                 location.reload();
+            } else {
+                alert(data.message || 'Could not add side.');
             }
         })
         .catch(err => {
             console.error(err);
+        });
+    }
         });
     }
 </script>

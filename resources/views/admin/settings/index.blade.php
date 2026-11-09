@@ -89,7 +89,106 @@
         </div>
     </div>
 
-    {{-- Logo & Favicon Management --}}
+    {{-- Facebook Pixel & Google Tag Manager (GTM) Integration --}}
+    <div class="card-panel">
+        <div class="card-panel-header" style="background:#f8fafc;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:rgba(24,119,242,0.1);color:#1877f2;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                    <i class="fa-brands fa-facebook"></i>
+                </div>
+                <div style="width:36px;height:36px;border-radius:8px;background:rgba(234,67,53,0.1);color:#ea4335;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <span class="card-panel-title">Marketing & Analytics Tracking (Facebook Pixel & GTM)</span>
+                    <div style="font-size:0.75rem;color:#64748b;">Manage Meta Pixel, Google Tag Manager & Custom Header/Body Tracking Scripts</div>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                @if(!empty($facebookPixelId))
+                    <span style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;padding:4px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;">
+                        <i class="fa-solid fa-circle-check"></i> Pixel: {{ Str::limit($facebookPixelId, 15) }}
+                    </span>
+                @else
+                    <span style="background:#f1f5f9;color:#64748b;padding:4px 10px;border-radius:20px;font-size:0.75rem;">
+                        Pixel: Inactive
+                    </span>
+                @endif
+                @if(!empty($googleTagManagerId))
+                    <span style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;padding:4px 10px;border-radius:20px;font-size:0.75rem;font-weight:700;">
+                        <i class="fa-solid fa-circle-check"></i> GTM: {{ Str::limit($googleTagManagerId, 15) }}
+                    </span>
+                @else
+                    <span style="background:#f1f5f9;color:#64748b;padding:4px 10px;border-radius:20px;font-size:0.75rem;">
+                        GTM: Inactive
+                    </span>
+                @endif
+            </div>
+        </div>
+        <div class="card-panel-body">
+            <form action="{{ route('admin.settings.analytics') }}" method="POST">
+                @csrf
+
+                <div class="form-row">
+                    {{-- Facebook Pixel ID --}}
+                    <div class="form-group">
+                        <label class="form-label" for="facebook_pixel_id">
+                            <i class="fa-brands fa-facebook" style="color:#1877f2;margin-right:4px;"></i> Facebook Pixel ID / Script
+                        </label>
+                        <input type="text" name="facebook_pixel_id" id="facebook_pixel_id" class="form-control" value="{{ old('facebook_pixel_id', $facebookPixelId) }}" placeholder="e.g. 123456789012345">
+                        <div style="font-size:0.75rem;color:#64748b;margin-top:6px;line-height:1.4;">
+                            আপনার Facebook Events Manager থেকে <strong>Pixel ID</strong> (বা সম্পূর্ণ কোড) এখানে দিন। প্রতিটি পেজে <code>PageView</code>, <code>ViewContent</code>, <code>AddToCart</code>, <code>InitiateCheckout</code> এবং <code>Purchase</code> ইভেন্ট স্বয়ংক্রিয়ভাবে ফায়ার হবে।
+                        </div>
+                        @error('facebook_pixel_id') <div class="form-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    {{-- Google Tag Manager ID --}}
+                    <div class="form-group">
+                        <label class="form-label" for="google_tag_manager_id">
+                            <i class="fa-brands fa-google" style="color:#ea4335;margin-right:4px;"></i> Google Tag Manager (GTM) ID / Script
+                        </label>
+                        <input type="text" name="google_tag_manager_id" id="google_tag_manager_id" class="form-control" value="{{ old('google_tag_manager_id', $googleTagManagerId) }}" placeholder="e.g. GTM-XXXXXXX">
+                        <div style="font-size:0.75rem;color:#64748b;margin-top:6px;line-height:1.4;">
+                            আপনার GTM কন্টেইনার আইডি দিন (যেমন: <strong>GTM-XXXXXXX</strong>)। ওয়েবসাইটের সকল পেজে <code>window.dataLayer</code> ইনিশিয়ালাইজ হয়ে সকল ইকমার্স ইভেন্ট পুশ হবে।
+                        </div>
+                        @error('google_tag_manager_id') <div class="form-error">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    {{-- Custom Header Scripts --}}
+                    <div class="form-group">
+                        <label class="form-label" for="custom_header_script">
+                            <i class="fa-solid fa-code" style="color:#0284c7;margin-right:4px;"></i> Custom Header Code / Scripts (&lt;head&gt;)
+                        </label>
+                        <textarea name="custom_header_script" id="custom_header_script" class="form-control" rows="3" placeholder='&lt;!-- Custom Header Tags, Meta Verifications or CSS --&gt;'>{{ old('custom_header_script', $customHeaderScript) }}</textarea>
+                        <div style="font-size:0.72rem;color:#64748b;margin-top:4px;">
+                            যেকোনো অতিরিক্ত ভেরিফিকেশন মেটা ট্যাগ বা হেড স্ক্রিপ্ট যা &lt;/head&gt; এর আগে যুক্ত হবে।
+                        </div>
+                        @error('custom_header_script') <div class="form-error">{{ $message }}</div> @enderror
+                    </div>
+
+                    {{-- Custom Footer Scripts --}}
+                    <div class="form-group">
+                        <label class="form-label" for="custom_footer_script">
+                            <i class="fa-solid fa-file-code" style="color:#059669;margin-right:4px;"></i> Custom Body / Footer Scripts (&lt;/body&gt;)
+                        </label>
+                        <textarea name="custom_footer_script" id="custom_footer_script" class="form-control" rows="3" placeholder='&lt;!-- Live Chat widget, Additional Body Tracking etc. --&gt;'>{{ old('custom_footer_script', $customFooterScript) }}</textarea>
+                        <div style="font-size:0.72rem;color:#64748b;margin-top:4px;">
+                            লাইভ চ্যাট উইজেট বা অন্যান্য বডি স্ক্রিপ্ট যা &lt;/body&gt; শেষ হওয়ার আগে যুক্ত হবে।
+                        </div>
+                        @error('custom_footer_script') <div class="form-error">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+                    <button type="submit" class="btn btn-primary" style="padding:10px 24px;">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Tracking & Pixel Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="form-row" style="align-items:flex-start;">
         {{-- Logo Management --}}
         <div>

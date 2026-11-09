@@ -181,20 +181,35 @@
                 <div class="checkout-card">
                     <h3 class="checkout-heading"><span><i class="fa-solid fa-location-dot" style="color:var(--brand-red);"></i></span> 2. Contact & Address Details</h3>
 
+                    @if(empty($user))
+                        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 14px; margin-bottom:16px; font-size:0.83rem; color:#166534; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-circle-check" style="font-size:1.1rem; color:#16a34a;"></i>
+                                <span><strong>গেস্ট চেকআউট:</strong> কোনো অ্যাকাউন্ট বা লগইন ছাড়াই নাম, ফোন নম্বর ও ডেলিভারি ঠিকানা দিয়ে সরাসরি অর্ডার করুন।</span>
+                            </div>
+                            <a href="{{ route('login') }}" style="font-size:0.78rem; color:var(--brand-red); font-weight:700; text-decoration:underline;">লগইন করতে চান?</a>
+                        </div>
+                    @else
+                        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:8px 12px; margin-bottom:14px; font-size:0.82rem; color:#1e40af; display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-user-check"></i>
+                            <span>Signed in as <strong>{{ $user->name }}</strong> ({{ $user->phone ?? $user->email }})</span>
+                        </div>
+                    @endif
+
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                         <div class="form-group">
-                            <label class="form-label">Full Name *</label>
-                            <input type="text" name="customer_name" class="form-control" value="{{ $user->name ?? old('customer_name') }}" placeholder="e.g. Tanvir Ahmed" required>
+                            <label class="form-label">Full Name / আপনার নাম *</label>
+                            <input type="text" name="customer_name" class="form-control" value="{{ old('customer_name', $user->name ?? '') }}" placeholder="e.g. Tanvir Ahmed" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Phone Number *</label>
-                            <input type="text" name="customer_phone" class="form-control" value="{{ old('customer_phone') }}" placeholder="e.g. 017xxxxxxxx" required>
+                            <label class="form-label">Phone Number / ফোন নম্বর *</label>
+                            <input type="text" name="customer_phone" class="form-control" value="{{ old('customer_phone', $user->phone ?? '') }}" placeholder="e.g. 017xxxxxxxx" required>
                         </div>
                     </div>
 
                     <div class="form-group" id="addressGroup">
-                        <label class="form-label">Delivery Address *</label>
-                        <textarea name="customer_address" class="form-control" rows="3" placeholder="House / Flat / Road / Area details..." id="addressInput" required>{{ old('customer_address') }}</textarea>
+                        <label class="form-label">Delivery Address / সম্পূর্ণ ঠিকানা *</label>
+                        <textarea name="customer_address" class="form-control" rows="3" placeholder="House / Flat / Road / Area details..." id="addressInput" required>{{ old('customer_address', $user->address ?? '') }}</textarea>
                     </div>
 
                     <div class="form-group">
@@ -393,5 +408,26 @@
             partialGroup.style.display = 'none';
         }
     }
+
+    // Fire InitiateCheckout / begin_checkout Event (dataLayer + Facebook Pixel)
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.trackEcommerceEvent === 'function') {
+            window.trackEcommerceEvent('begin_checkout', {
+                currency: 'BDT',
+                value: {{ (float)$total }},
+                items: [
+                    @foreach($cart as $item)
+                    {
+                        item_id: '{{ $item['product_id'] ?? $loop->iteration }}',
+                        item_name: '{{ addslashes($item['name']) }}',
+                        item_category: '{{ addslashes($item['category_name'] ?? 'Pizza') }}',
+                        price: {{ (float) $item['unit_price'] }},
+                        quantity: {{ (int) ($item['quantity'] ?? 1) }}
+                    },
+                    @endforeach
+                ]
+            });
+        }
+    });
 </script>
 @endpush

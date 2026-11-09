@@ -21,10 +21,15 @@ class AdminSettingController extends Controller
         $siteEmail       = Setting::getValue('site_email', 'contact@italianpizzahut.com');
         $openingHours    = Setting::getValue('opening_hours', 'Daily: 11:00 AM – 11:30 PM');
         $googleMapEmbed  = Setting::getValue('google_map_embed', '');
+        $facebookPixelId    = Setting::getValue('facebook_pixel_id', '');
+        $googleTagManagerId = Setting::getValue('google_tag_manager_id', '');
+        $customHeaderScript = Setting::getValue('custom_header_script', '');
+        $customFooterScript = Setting::getValue('custom_footer_script', '');
 
         return view('admin.settings.index', compact(
             'siteName', 'logo', 'favicon', 'pointRatePoints', 'pointRateTaka', 'minRedeemPoints',
-            'siteAddress', 'sitePhone', 'siteEmail', 'openingHours', 'googleMapEmbed'
+            'siteAddress', 'sitePhone', 'siteEmail', 'openingHours', 'googleMapEmbed',
+            'facebookPixelId', 'googleTagManagerId', 'customHeaderScript', 'customFooterScript'
         ));
     }
 
@@ -47,6 +52,23 @@ class AdminSettingController extends Controller
         Setting::setValue('google_map_embed', $request->input('google_map_embed', ''));
 
         return redirect()->route('admin.settings.index')->with('success', 'Store details, contact information & settings updated successfully!');
+    }
+
+    public function updateAnalytics(Request $request)
+    {
+        $request->validate([
+            'facebook_pixel_id'    => 'nullable|string',
+            'google_tag_manager_id' => 'nullable|string',
+            'custom_header_script' => 'nullable|string',
+            'custom_footer_script' => 'nullable|string',
+        ]);
+
+        Setting::setValue('facebook_pixel_id', trim($request->input('facebook_pixel_id', '')));
+        Setting::setValue('google_tag_manager_id', trim($request->input('google_tag_manager_id', '')));
+        Setting::setValue('custom_header_script', $request->input('custom_header_script', ''));
+        Setting::setValue('custom_footer_script', $request->input('custom_footer_script', ''));
+
+        return redirect()->route('admin.settings.index')->with('success', 'Facebook Pixel & Google Tag Manager (GTM) settings updated successfully!');
     }
 
     public function pointsIndex()

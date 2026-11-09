@@ -63,11 +63,9 @@ Route::post('/cart/remove-coupon', [CartController::class, 'removeCoupon'])->nam
 Route::post('/cart/apply-points', [CartController::class, 'applyPoints'])->name('cart.applyPoints');
 Route::post('/cart/remove-points', [CartController::class, 'removePoints'])->name('cart.removePoints');
 
-// Checkout & Order Tracking (Protected - Customer must be logged in to order)
-Route::middleware('auth:web')->group(function () {
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-});
+// Checkout & Order Tracking (Open to all customers - Guests & Registered)
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/order-success/{orderNumber}', [CheckoutController::class, 'success'])->name('checkout.success');
 
 // Customer Authentication (Guard: web)
@@ -219,6 +217,7 @@ Route::prefix('admin')->middleware(AdminAuthenticate::class)->group(function () 
     Route::post('/settings/points', [AdminSettingController::class, 'updatePoints'])->name('admin.settings.points.update');
     Route::get('/settings/shipping', [AdminSettingController::class, 'shippingIndex'])->name('admin.settings.shipping');
     Route::post('/settings/shipping', [AdminSettingController::class, 'updateShipping'])->name('admin.settings.shipping.update');
+    Route::post('/settings/analytics', [AdminSettingController::class, 'updateAnalytics'])->name('admin.settings.analytics');
 
     // Website CMS Pages CRUD
     Route::get('/pages', [\App\Http\Controllers\Admin\AdminPageController::class, 'index'])->name('admin.pages.index');

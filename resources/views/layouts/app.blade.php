@@ -45,6 +45,125 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- Google Tag Manager / dataLayer Initialization -->
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        window.dataLayer.push({
+            event: 'page_view',
+            page_path: window.location.pathname,
+            page_title: document.title,
+            page_location: window.location.href
+        });
+    </script>
+
+    @if(!empty($googleTagManagerId))
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','{{ $googleTagManagerId }}');</script>
+    <!-- End Google Tag Manager -->
+    @elseif(!empty($googleTagManagerRaw) && Str::contains($googleTagManagerRaw, '<script'))
+    {!! $googleTagManagerRaw !!}
+    @endif
+
+    @if(!empty($facebookPixelId))
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '{{ $facebookPixelId }}');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id={{ $facebookPixelId }}&ev=PageView&noscript=1"
+    alt="Meta Pixel" /></noscript>
+    <!-- End Meta Pixel Code -->
+    @elseif(!empty($facebookPixelRaw) && Str::contains($facebookPixelRaw, '<script'))
+    {!! $facebookPixelRaw !!}
+    @endif
+
+    <!-- Universal E-Commerce Tracking Dispatcher (GTM dataLayer + Facebook Pixel) -->
+    <script>
+        window.trackEcommerceEvent = function(eventName, data) {
+            data = data || {};
+            window.dataLayer = window.dataLayer || [];
+
+            const gtmPayload = {
+                event: eventName,
+                ecommerce: {
+                    currency: data.currency || 'BDT',
+                    value: Number(data.value || 0),
+                    items: data.items || []
+                }
+            };
+            if (data.transaction_id) gtmPayload.ecommerce.transaction_id = data.transaction_id;
+            if (data.shipping !== undefined) gtmPayload.ecommerce.shipping = Number(data.shipping);
+            if (data.tax !== undefined) gtmPayload.ecommerce.tax = Number(data.tax);
+            if (data.coupon) gtmPayload.ecommerce.coupon = data.coupon;
+
+            window.dataLayer.push({ ecommerce: null }); // Clear previous ecommerce object
+            window.dataLayer.push(gtmPayload);
+
+            // Meta / Facebook Pixel event mapping
+            if (typeof window.fbq === 'function') {
+                try {
+                    if (eventName === 'view_item' || eventName === 'ViewContent') {
+                        const item = (data.items && data.items[0]) ? data.items[0] : {};
+                        window.fbq('track', 'ViewContent', {
+                            content_name: item.item_name || data.item_name || '',
+                            content_category: item.item_category || data.item_category || 'Food',
+                            content_ids: [String(item.item_id || data.item_id || '')],
+                            content_type: 'product',
+                            value: Number(data.value || item.price || 0),
+                            currency: data.currency || 'BDT'
+                        });
+                    } else if (eventName === 'add_to_cart' || eventName === 'AddToCart') {
+                        const item = (data.items && data.items[0]) ? data.items[0] : {};
+                        window.fbq('track', 'AddToCart', {
+                            content_name: item.item_name || data.item_name || '',
+                            content_category: item.item_category || data.item_category || 'Food',
+                            content_ids: (data.items || []).map(i => String(i.item_id || i.id || '')),
+                            content_type: 'product',
+                            value: Number(data.value || 0),
+                            currency: data.currency || 'BDT'
+                        });
+                    } else if (eventName === 'begin_checkout' || eventName === 'InitiateCheckout') {
+                        window.fbq('track', 'InitiateCheckout', {
+                            content_ids: (data.items || []).map(i => String(i.item_id || i.id || '')),
+                            content_type: 'product',
+                            num_items: (data.items || []).reduce((acc, i) => acc + (Number(i.quantity) || 1), 0),
+                            value: Number(data.value || 0),
+                            currency: data.currency || 'BDT'
+                        });
+                    } else if (eventName === 'purchase' || eventName === 'Purchase') {
+                        window.fbq('track', 'Purchase', {
+                            content_ids: (data.items || []).map(i => String(i.item_id || i.id || '')),
+                            content_type: 'product',
+                            num_items: (data.items || []).reduce((acc, i) => acc + (Number(i.quantity) || 1), 0),
+                            value: Number(data.value || 0),
+                            currency: data.currency || 'BDT'
+                        });
+                    }
+                } catch (err) {
+                    console.warn('Meta Pixel tracking warning:', err);
+                }
+            }
+        };
+    </script>
+
+    @if(!empty($customHeaderScript))
+    {!! $customHeaderScript !!}
+    @endif
+
     <!-- Self-contained Styling for Italian Pizza Hut -->
     <style>
         :root {
@@ -716,6 +835,12 @@
     @stack('styles')
 </head>
 <body>
+    @if(!empty($googleTagManagerId))
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $googleTagManagerId }}"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    @endif
 
     <!-- Header - Simplified: Logo, Search, User -->
     <header class="site-header">
@@ -999,5 +1124,8 @@
         }
     </script>
     @stack('scripts')
+    @if(!empty($customFooterScript))
+    {!! $customFooterScript !!}
+    @endif
 </body>
 </html>

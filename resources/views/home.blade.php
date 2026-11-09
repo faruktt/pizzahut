@@ -1346,13 +1346,22 @@
 
     // Open Customize Modal (Image 2)
     function openCustomizeModal(productId) {
-        if (!isCustomerLoggedIn) {
-            window.location.href = customerLoginUrl;
-            return;
-        }
-
         const pData = pizzaDataMap[productId];
         currentPizza = pData;
+
+        // Fire ViewContent / view_item event (dataLayer + Meta Pixel)
+        if (pData && typeof window.trackEcommerceEvent === 'function') {
+            window.trackEcommerceEvent('view_item', {
+                currency: 'BDT',
+                value: Number(pData.basePrice || 0),
+                items: [{
+                    item_id: String(pData.id),
+                    item_name: pData.name,
+                    item_category: 'Pizza',
+                    price: Number(pData.basePrice || 0)
+                }]
+            });
+        }
 
         const sizeSelect = document.getElementById('size-' + productId);
         const crustSelect = document.getElementById('crust-' + productId);
@@ -1478,11 +1487,6 @@
 
     // Submit modal pizza to cart via AJAX (real-time)
     function submitModalToCart() {
-        if (!isCustomerLoggedIn) {
-            window.location.href = customerLoginUrl;
-            return;
-        }
-
         if (!currentPizza) return;
 
         const sizeSelect = document.getElementById('size-' + currentPizza.id);
@@ -1491,6 +1495,7 @@
         const btn = document.getElementById('btnModalSubmit');
         const priceEl = document.getElementById('modalTotalBtnPrice');
         const currentPriceText = priceEl ? priceEl.innerText : '';
+        const numericTotalPrice = parseFloat((currentPriceText || '').replace(/[^0-9.]/g, '')) || 0;
 
         btn.disabled = true;
         btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Adding...</span>`;
@@ -1519,28 +1524,11 @@
             },
             body: JSON.stringify(payload)
         })
-        .then(res => {
-            if (res.status === 401) {
-                showToast('কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন।', false);
-                setTimeout(() => {
-                    window.location.href = customerLoginUrl;
-                }, 800);
-                throw new Error('Unauthenticated');
-            }
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
             btn.disabled = false;
             btn.innerHTML = `<span>Add</span> <span id="modalTotalBtnPrice">${currentPriceText}</span>`;
             
-            if (data.status === 'auth_required') {
-                showToast(data.message || 'কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন।', false);
-                setTimeout(() => {
-                    window.location.href = data.redirect || customerLoginUrl;
-                }, 800);
-                return;
-            }
-
             if (data.success) {
                 // Real-time update of floating cart badge
                 const cartCountEl = document.getElementById('headerCartCount');
@@ -1558,6 +1546,21 @@
                     }, 300);
                 }
 
+                // Fire AddToCart event (dataLayer + Meta Pixel)
+                if (typeof window.trackEcommerceEvent === 'function') {
+                    window.trackEcommerceEvent('add_to_cart', {
+                        currency: 'BDT',
+                        value: numericTotalPrice,
+                        items: [{
+                            item_id: String(currentPizza.id),
+                            item_name: currentPizza.name,
+                            item_category: 'Pizza',
+                            price: modalQuantity > 0 ? (numericTotalPrice / modalQuantity) : numericTotalPrice,
+                            quantity: modalQuantity
+                        }]
+                    });
+                }
+
                 closeCustomizeModal();
                 showToast('✓ ' + (currentPizza ? currentPizza.name : 'Pizza') + ' added to cart!');
             } else {
@@ -1568,19 +1571,12 @@
             btn.disabled = false;
             btn.innerHTML = `<span>Add</span> <span id="modalTotalBtnPrice">${currentPriceText}</span>`;
             console.error(err);
-            if (err.message !== 'Unauthenticated') {
-                showToast('Failed to add item to cart. Please try again.', false);
-            }
+            showToast('Failed to add item to cart. Please try again.', false);
         });
     }
 
     // Quick add for deals
     function quickAddDeal(dealId, dealName, price) {
-        if (!isCustomerLoggedIn) {
-            window.location.href = customerLoginUrl;
-            return;
-        }
-
         const payload = {
             product_id: dealId,
             quantity: 1,
@@ -1596,27 +1592,29 @@
             },
             body: JSON.stringify(payload)
         })
-        .then(res => {
-            if (res.status === 401) {
-                showToast('কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন।', false);
-                setTimeout(() => {
-                    window.location.href = customerLoginUrl;
-                }, 800);
-                throw new Error('Unauthenticated');
-            }
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
-            if (data.status === 'auth_required') {
-                showToast(data.message || 'কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন।', false);
-                setTimeout(() => {
-                    window.location.href = data.redirect || customerLoginUrl;
-                }, 800);
-                return;
-            }
             if (data.success) {
                 document.getElementById('headerCartCount').innerText = data.cartCount;
+
+                // Fire AddToCart event (dataLayer + Meta Pixel)
+                if (typeof window.trackEcommerceEvent === 'function') {
+                    window.trackEcommerceEvent('add_to_cart', {
+                        currency: 'BDT',
+                        value: Number(price || 0),
+                        items: [{
+                            item_id: String(dealId),
+                            item_name: dealName,
+                            item_category: 'Deals',
+                            price: Number(price || 0),
+                            quantity: 1
+                        }]
+                    });
+                }
+
                 showToast('✓ ' + dealName + ' added to cart!');
+            } else {
+                showToast(data.message || 'Could not add deal to cart.', false);
             }
         })
         .catch(err => {

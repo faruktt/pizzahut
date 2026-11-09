@@ -269,3 +269,31 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Fire Purchase Event on successful order completion (dataLayer + Facebook Pixel)
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.trackEcommerceEvent === 'function') {
+            window.trackEcommerceEvent('purchase', {
+                transaction_id: '{{ $order->order_number }}',
+                currency: 'BDT',
+                value: {{ (float) $order->total_amount }},
+                shipping: {{ (float) $order->delivery_charge }},
+                tax: {{ (float) $order->vat_tax }},
+                coupon: '{{ $order->coupon_code ?? '' }}',
+                items: [
+                    @foreach($order->items as $item)
+                    {
+                        item_id: '{{ $item->product_id ?? $loop->iteration }}',
+                        item_name: '{{ addslashes($item->product_name) }}',
+                        price: {{ (float) $item->unit_price }},
+                        quantity: {{ (int) $item->quantity }}
+                    },
+                    @endforeach
+                ]
+            });
+        }
+    });
+</script>
+@endpush

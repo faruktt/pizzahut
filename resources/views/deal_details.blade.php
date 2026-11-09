@@ -403,13 +403,36 @@
             chooseSlotProduct({{ $index + 1 }}, {{ $firstProd->id }}, '{{ addslashes($firstProd->name) }}');
         @endforeach
 
-        const isCustomerLoggedIn = {{ Auth::guard('web')->check() ? 'true' : 'false' }};
+        // Fire ViewContent on deal page load
+        if (typeof window.trackEcommerceEvent === 'function') {
+            window.trackEcommerceEvent('view_item', {
+                currency: 'BDT',
+                value: {{ (float) ($deal->base_price ?? $deal->price ?? 0) }},
+                items: [{
+                    item_id: 'DEAL-{{ $deal->id }}',
+                    item_name: '{{ addslashes($deal->name) }}',
+                    item_category: 'Deals',
+                    price: {{ (float) ($deal->base_price ?? $deal->price ?? 0) }}
+                }]
+            });
+        }
+
         const form = document.getElementById('dealComboForm');
         if (form) {
             form.addEventListener('submit', function(e) {
-                if (!isCustomerLoggedIn) {
-                    e.preventDefault();
-                    window.location.href = "{{ route('login') }}";
+                // Fire AddToCart event (dataLayer + Meta Pixel)
+                if (typeof window.trackEcommerceEvent === 'function') {
+                    window.trackEcommerceEvent('add_to_cart', {
+                        currency: 'BDT',
+                        value: {{ (float) ($deal->base_price ?? $deal->price ?? 0) }},
+                        items: [{
+                            item_id: 'DEAL-{{ $deal->id }}',
+                            item_name: '{{ addslashes($deal->name) }}',
+                            item_category: 'Deals',
+                            price: {{ (float) ($deal->base_price ?? $deal->price ?? 0) }},
+                            quantity: 1
+                        }]
+                    });
                 }
             });
         }

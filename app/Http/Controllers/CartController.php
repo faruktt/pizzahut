@@ -62,19 +62,6 @@ class CartController extends Controller
      */
     public function add(Request $request)
     {
-        if (!Auth::guard('web')->check()) {
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'status' => 'auth_required',
-                    'redirect' => route('login'),
-                    'message' => 'কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন। (Please login to add items to your cart)'
-                ], 401);
-            }
-            session()->put('url.intended', url()->previous());
-            return redirect()->route('login')->with('error', 'কার্টে পণ্য যোগ করতে অনুগ্রহ করে প্রথমে লগইন করুন। (Please login to add items to your cart)');
-        }
-
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'nullable|integer|min:1',

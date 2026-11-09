@@ -19,11 +19,6 @@ class CheckoutController extends Controller
      */
     public function index()
     {
-        if (!Auth::guard('web')->check()) {
-            session()->put('url.intended', route('checkout.index'));
-            return redirect()->route('login')->with('error', 'অর্ডার করতে অনুগ্রহ করে প্রথমে লগইন করুন। (Please login to proceed with your order)');
-        }
-
         $cart = session()->get('cart', []);
         if (empty($cart)) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty. Please add items to checkout.');
@@ -86,11 +81,6 @@ class CheckoutController extends Controller
      */
     public function store(Request $request)
     {
-        if (!Auth::guard('web')->check()) {
-            session()->put('url.intended', route('checkout.index'));
-            return redirect()->route('login')->with('error', 'অর্ডার সম্পন্ন করতে অনুগ্রহ করে প্রথমে লগইন করুন। (Please login to complete your order)');
-        }
-
         $cart = session()->get('cart', []);
         if (empty($cart)) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');

@@ -51,6 +51,39 @@ class AppServiceProvider extends ServiceProvider
             $view->with('googleMapEmbed', Setting::getValue('google_map_embed'));
             $view->with('footerCategories', \App\Models\Category::where('is_active', true)->orderBy('sort_order')->take(6)->get());
             $view->with('footerPages', \App\Models\Page::where('is_active', true)->orderBy('sort_order')->get());
+
+            // Tracking Pixels & Marketing IDs
+            $rawFbPixel = trim(Setting::getValue('facebook_pixel_id', '') ?? '');
+            $rawGtm = trim(Setting::getValue('google_tag_manager_id', '') ?? '');
+
+            $fbPixelId = null;
+            if ($rawFbPixel !== '') {
+                if (preg_match('/^[0-9]+$/', $rawFbPixel)) {
+                    $fbPixelId = $rawFbPixel;
+                } elseif (preg_match('/fbq\([\'"]init[\'"]\s*,\s*[\'"]([0-9]+)[\'"]\)/i', $rawFbPixel, $m)) {
+                    $fbPixelId = $m[1];
+                } elseif (preg_match('/id=([0-9]+)/i', $rawFbPixel, $m)) {
+                    $fbPixelId = $m[1];
+                }
+            }
+
+            $gtmId = null;
+            if ($rawGtm !== '') {
+                if (preg_match('/^(GTM-[A-Z0-9]+|G-[A-Z0-9]+)$/i', $rawGtm)) {
+                    $gtmId = strtoupper($rawGtm);
+                } elseif (preg_match('/[\'"](GTM-[A-Z0-9]+)[\'"]/i', $rawGtm, $m)) {
+                    $gtmId = strtoupper($m[1]);
+                } elseif (preg_match('/id=(GTM-[A-Z0-9]+)/i', $rawGtm, $m)) {
+                    $gtmId = strtoupper($m[1]);
+                }
+            }
+
+            $view->with('facebookPixelId', $fbPixelId);
+            $view->with('facebookPixelRaw', $rawFbPixel);
+            $view->with('googleTagManagerId', $gtmId);
+            $view->with('googleTagManagerRaw', $rawGtm);
+            $view->with('customHeaderScript', Setting::getValue('custom_header_script'));
+            $view->with('customFooterScript', Setting::getValue('custom_footer_script'));
         });
     }
 }
